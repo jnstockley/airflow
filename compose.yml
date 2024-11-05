@@ -1,0 +1,85 @@
+x-airflow-common:
+  &airflow-common
+  build: .
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+    - ./data:/opt/airflow/data
+  env_file:
+    - .env
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "airflow" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 100s
+    restart: always
+    container_name: postgres
+    networks:
+      - airflow
+
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 100s
+    restart: always
+    container_name: airflow-webserver
+    depends_on:
+      - airflow-scheduler
+    networks:
+      - airflow
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    ports:
+      - "8974:8974"
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:8974/health" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 100s
+    restart: always
+    container_name: airflow-scheduler
+    depends_on:
+      - airflow-init
+    networks:
+      - airflow
+
+  airflow-init:
+    <<: *airflow-common
+    command: version
+    environment:
+      _AIRFLOW_DB_MIGRATE: 'true'
+    depends_on:
+      - postgres
+    networks:
+      - airflow
+
+networks:
+  airflow:
+
+volumes:
+  postgres-db-volume:
