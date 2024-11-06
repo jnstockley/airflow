@@ -1,4 +1,4 @@
-FROM apache/airflow:slim-2.10.2-python3.12
+FROM apache/airflow:slim-2.10.3-python3.12
 ENV PYTHONPATH "${PYTHONPATH}:/opt/airflow/plugins"
 USER root
 RUN apt-get update -y
