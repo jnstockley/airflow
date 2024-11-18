@@ -61,6 +61,9 @@ jobs:
           images: |
             jnstockley/airflow
             ghcr.io/jnstockley/airflow
+      - name: Get current date
+        id: date
+        run: echo "DATE=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v6
@@ -68,6 +71,6 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: jnstockley/airflow:latest,jnstockley/airflow:${{ github.sha }}
+          tags: jnstockley/airflow:latest,jnstockley/airflow:${{ env.DATE }}
           labels: ${{ steps.meta.outputs.labels }}
 
