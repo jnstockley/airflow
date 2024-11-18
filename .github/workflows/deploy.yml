@@ -1,18 +1,6 @@
 name: Publish Airflow Docker image
 
 on:
-  pull_request:
-    branches:
-      - main
-    types:
-      - closed
-    paths:
-      - conf/**
-      - dags/**
-      - plugins/**
-      - Dockerfile
-      - requirements.txt
-      - .github/workflows/deploy.yml
   push:
     branches:
       - main
