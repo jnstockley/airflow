@@ -9,5 +9,19 @@
   "ignoreDeps": [
     "aiohttp",
     "psycopg2-binary"
+  ],
+  "packageRules": [
+    {
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "airflow"
+      ],
+      "matchFileNames": [
+        "Dockerfile"
+      ],
+      "versioning": "regex:^slim-(?<major>3)\\.(?<minor>9)\\.(?<patch>\\d+)(-(?<compatibility>.*))?$"
+    }
   ]
 }
