@@ -21,7 +21,7 @@
       "matchFileNames": [
         "Dockerfile"
       ],
-      "versioning": "regex:^slim-(?<major>3)\\.(?<minor>9)\\.(?<patch>\\d+)(-(?<compatibility>.*))?$"
+      "versioning": "regex:^slim-(?<major>)\\.(?<minor>)\\.(?<patch>\\d+)(-(?<compatibility>.*))?$"
     }
   ]
 }
