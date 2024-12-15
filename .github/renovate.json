@@ -1,5 +1,13 @@
 {
+  "extends": [
+    "config:recommended"
+  ],
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "baseBranches": ["beta"],
-  "ignoreDeps": ["aiohttp", "psycopg2-binary"]
+  "baseBranches": [
+    "beta"
+  ],
+  "ignoreDeps": [
+    "aiohttp",
+    "psycopg2-binary"
+  ]
 }

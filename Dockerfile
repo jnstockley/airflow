@@ -1,4 +1,4 @@
-FROM apache/airflow:2.10.3-python3.12
+FROM apache/airflow:slim-2.10.3-python3.12 AS build
 
 USER root
 
@@ -9,20 +9,33 @@ RUN apt-get update -yqq &&  \
 
 USER airflow
 
-ENV PYTHONPATH "${PYTHONPATH}:/opt/airflow/plugins"
+#ENV PYTHONPATH "${PYTHONPATH}:/opt/airflow/plugins"
 
-ENV PATH="/home/airflow/.local/bin:${PATH}"
+#ENV PATH="/home/airflow/.local/bin:${PATH}"
 
-RUN chmod -R 770 /opt/airflow
+#RUN chmod -R 770 /opt/airflow
 
 COPY requirements.txt .
 
-RUN pip3 install --upgrade pip
+RUN pip3 install --upgrade pip && \
+    pip3 install -r requirements.txt
 
-RUN pip3 install -r requirements.txt
+FROM apache/airflow:slim-2.10.3-python3.12
+
+COPY --from=build home/airflow/.local/ /home/airflow/.local/
+
+ENV PYTHONPATH "${PYTHONPATH}:/opt/airflow/plugins"
+
+ENV PATH="/root/.local/bin:${PATH}"
 
 COPY conf/webserver_config.py /opt/airflow
 
 COPY plugins /opt/airflow/plugins
 
 COPY dags /opt/airflow/dags
+
+USER root
+
+RUN chmod -R 770 /opt/airflow
+
+USER airflow
