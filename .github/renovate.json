@@ -16,7 +16,7 @@
         "docker"
       ],
       "matchPackageNames": [
-        "airflow"
+        "apache/airflow"
       ],
       "matchFileNames": [
         "Dockerfile"
