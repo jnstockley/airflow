@@ -11,7 +11,7 @@
     "psycopg2-binary"
   ],
   "pip_requirements": {
-    "fileMatch": ["(^|/)requirements(-.*)?.txt$"]
+    "fileMatch": ["(^|/)requirements(_.*)?.txt$"]
   },
   "packageRules": [
     {
