@@ -23,8 +23,7 @@
       ],
       "versioning": "regex:^slim-(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-python(?<python_major>\\d+)\\.(?<python_minor>\\d+)$",
       "semanticCommitType": "minor",
-      "semanticCommitScope": "python_minor",
-      "priority": 1
+      "semanticCommitScope": "python_minor"
     }
   ],
   "regexManagers": [
