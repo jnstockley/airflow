@@ -24,6 +24,14 @@
       "versioning": "regex:^slim-(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
       "semanticCommitType": "minor",
       "semanticCommitScope": "python_minor"
+    },
+    {
+      "fileMatch": ["^requirements_dev\\.txt$"],
+      "matchStrings": [
+        "^(?<depName>[^=<>~!]+)(?<constraint>[=<>~!]+)(?<currentValue>[^\\s]+)$"
+      ],
+      "datasourceTemplate": "pypi",
+      "versioningTemplate": "pep440"
     }
   ]
 }
