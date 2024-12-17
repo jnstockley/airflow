@@ -26,6 +26,14 @@
       "semanticCommitScope": "python_minor"
     },
     {
+      "fileMatch": ["^requirements\\.txt$"],
+      "matchStrings": [
+        "^(?<depName>[^=<>~!]+)(?<constraint>[=<>~!]+)(?<currentValue>[^\\s]+)$"
+      ],
+      "datasourceTemplate": "pypi",
+      "versioningTemplate": "pep440"
+    },
+    {
       "fileMatch": ["^requirements_dev\\.txt$"],
       "matchStrings": [
         "^(?<depName>[^=<>~!]+)(?<constraint>[=<>~!]+)(?<currentValue>[^\\s]+)$"
