@@ -23,8 +23,22 @@
       ],
       "versioning": "regex:^slim-(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-python(?<python_major>\\d+)\\.(?<python_minor>\\d+)$",
       "semanticCommitType": "minor",
-      "semanticCommitScope": "python_minor"
+      "semanticCommitScope": "python_minor",
+      "priority": 1
+    }
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["^Dockerfile$"],
+      "matchStrings": [
+        "FROM\\s+apache/airflow:slim-(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-python(?<python_major>\\d+)\\.(?<python_minor>\\d+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "regex:^slim-(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-python(?<python_major>\\d+)\\.(?<python_minor>\\d+)$",
+      "extractVersionTemplate": "^slim-(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-python(?<python_major>\\d+)\\.(?<python_minor>\\d+)$",
+      "depNameTemplate": "apache/airflow",
+      "lookupNameTemplate": "apache/airflow",
+      "versioning": "regex:^slim-(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-python(?<python_major>\\d+)\\.(?<python_minor>\\d+)$"
     }
   ]
 }
-
