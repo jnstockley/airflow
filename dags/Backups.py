@@ -49,7 +49,6 @@ def backup():
     racknerd_host = Variable.get("BACKUP_RACKNERD_HOST")
     racknerd_api_key = Variable.get("BACKUP_RACKNERD_API_KEY")
 
-
     @task()
     def paused():
 
@@ -60,8 +59,13 @@ def backup():
             response = requests.get(url, headers=headers, verify=False)
 
             if response.status_code != 200 or response.json() != {"status": "OK"}:
-                logger.error(f"Response code: {response.status_code}, when it should be 200 -> {response.json()}")
-                raise ConnectionError(f"Response code: {response.status_code}, when it should be 200 -> {response.json()}")
+                logger.error(
+                    f"Response code: {response.status_code}, when it should be 200 -> {response.json()}"
+                )
+                raise ConnectionError(
+                    f"Response code: {response.status_code}, when it should be 200 -> "
+                    f"{response.json()}"
+                )
 
         def check_paused(host: str, api_key: str):
             url = f"{host}/rest/config/folders"
@@ -70,26 +74,36 @@ def backup():
             response = requests.get(url, headers=headers, verify=False)
 
             if response.status_code != 200:
-                logger.error(f"Response code: {response.status_code}, when it should be 200 -> {response.json()}")
-                raise ConnectionError(f"Response code: {response.status_code}, when it should be 200 -> {response.json()}")
+                logger.error(
+                    f"Response code: {response.status_code}, when it should be 200 -> {response.json()}"
+                )
+                raise ConnectionError(
+                    f"Response code: {response.status_code}, when it should be 200 -> "
+                    f"{response.json()}"
+                )
 
             folders = response.json()
 
             for folder in folders:
                 data = dict(folder)
-                assert "paused" in data, f"{host} -> Invalid response message missing `paused`: {folder}"
-                assert "label" in data, f"{host} -> Invalid response message missing `label`: {folder}"
-                assert not data['paused'], f"{host} -> {data['label']} is paused on {host}"
-
+                assert (
+                    "paused" in data
+                ), f"{host} -> Invalid response message missing `paused`: {folder}"
+                assert (
+                    "label" in data
+                ), f"{host} -> Invalid response message missing `label`: {folder}"
+                assert not data[
+                    "paused"
+                ], f"{host} -> {data['label']} is paused on {host}"
 
         def main():
             logger.info("Checking Iowa Home Paused Status")
             heath_check(iowa_home_host, iowa_home_api_key)
             check_paused(iowa_home_host, iowa_home_api_key)
 
-            '''logger.info("Checking Chicago Home Paused Status")
+            logger.info("Checking Chicago Home Paused Status")
             heath_check(chicago_home_host, chicago_home_api_key)
-            check_paused(chicago_home_host, chicago_home_api_key)'''
+            check_paused(chicago_home_host, chicago_home_api_key)
 
             logger.info("Checking Backup Server Paused Status")
             heath_check(backup_server_host, backup_server_api_key)
@@ -113,26 +127,38 @@ def backup():
             url = f"{host}/rest/stats/folder"
             headers = {"Authorization": f"Bearer {api_key}"}
 
-            outdated_time = (datetime.now() - timedelta(hours=outdated_interval)).timestamp()
+            outdated_time = (
+                datetime.now() - timedelta(hours=outdated_interval)
+            ).timestamp()
 
             response = requests.get(url, headers=headers, verify=False)
 
             if response.status_code != 200:
-                logger.error(f"Response code: {response.status_code}, when it should be 200 -> {response.json()}")
-                raise ConnectionError(f"Response code: {response.status_code}, when it should be 200 -> {response.json()}")
+                logger.error(
+                    f"Response code: {response.status_code}, when it should be 200 -> {response.json()}"
+                )
+                raise ConnectionError(
+                    f"Response code: {response.status_code}, when it should be 200 -> "
+                    f"{response.json()}"
+                )
 
             folders = response.json()
-            for (folder, data) in folders.items():
-                assert 'lastScan' in data, f"{host} -> Invalid response message missing `lastScan`: {data}"
-                last_scan = datetime.fromisoformat(data['lastScan']).timestamp()
-                assert last_scan >= outdated_time, f"{host} -> {folder} is out of sync on {host}, last synced: {last_scan}"
+            for folder, data in folders.items():
+                assert (
+                    "lastScan" in data
+                ), f"{host} -> Invalid response message missing `lastScan`: {data}"
+                last_scan = datetime.fromisoformat(data["lastScan"]).timestamp()
+                assert last_scan >= outdated_time, (
+                    f"{host} -> {folder} is out of sync on {host}, "
+                    f"last synced: {last_scan}"
+                )
 
         def main():
             logger.info("Checking Iowa Home Outdated Status")
             check_status(iowa_home_host, iowa_home_api_key)
 
-            '''logger.info("Checking Chicago Home Outdated Status")
-            check_status(chicago_home_host, chicago_home_api_key)'''
+            logger.info("Checking Chicago Home Outdated Status")
+            check_status(chicago_home_host, chicago_home_api_key)
 
             logger.info("Checking Backup Server Outdated Status")
             check_status(backup_server_host, backup_server_api_key)
@@ -150,5 +176,6 @@ def backup():
         pass
 
     paused() >> status()
+
 
 backup()
