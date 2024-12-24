@@ -1,13 +1,13 @@
 import logging
 from datetime import timedelta, datetime
 
+import requests
 from airflow.decorators import task
 from airflow.models import Variable, TaskInstance
 from airflow.models.dag import dag
 
 from cloudflare.cloudflare_api import (
     get_dns_zone_id,
-    get_all_a_record_ips,
     get_zero_trust_app_ids,
     get_app_policy_ids,
     delete_app_policies,
@@ -43,13 +43,30 @@ def cloudflare_apps():
     def get_all_ips(ti: TaskInstance):
         dns_zone_name = Variable.get("CLOUDFLARE_ZONE_NAME")
         cloudflare_api_key = Variable.get("CLOUDFLARE_API_KEY")
+        api_key = Variable.get("API_KEY")
+
+        def get_ips_from_api(api_key: str):
+            headers = {"x-api-key": api_key}
+            response = requests.get("https://api.jstockley.com/ip/", headers=headers)
+            if response.status_code != 200:
+                logger.error(
+                    f"Failed to get IPs from API. Status code: {response.status_code} -> "
+                    f"{response.json()}"
+                )
+                raise ConnectionError(
+                    f"Failed to get IPs from API. Status code: {response.status_code} -> "
+                    f"{response.json()}"
+                )
+            return [
+                item["ip_address"] for item in response.json() if "ip_address" in item
+            ]
 
         def main():
             logger.info("Getting DNS zone ID")
             dns_zone_id = get_dns_zone_id(dns_zone_name, cloudflare_api_key)
 
-            logger.info("Getting All A record IPs")
-            ips = get_all_a_record_ips(dns_zone_id, cloudflare_api_key)
+            logger.info("Getting IPs from API")
+            ips = get_ips_from_api(api_key)
 
             ti.xcom_push(key="dns_zone_id", value=dns_zone_id)
             ti.xcom_push(key="ips", value=ips)
