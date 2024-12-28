@@ -1,10 +1,9 @@
 import logging
-import re
 from datetime import timedelta, datetime
 
 import requests
 from airflow.decorators import task
-from airflow.models import Variable, TaskInstance
+from airflow.models import Variable
 from airflow.models.dag import dag
 
 
@@ -51,8 +50,7 @@ def cloudflare_ddns():
                 f"{response.json()}"
             )
 
-
-
     update_ip_address()
+
 
 cloudflare_ddns()

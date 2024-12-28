@@ -13,7 +13,7 @@ from plugins.cloudflare.cloudflare_api import (
     delete_app_policies,
     create_app_policy,
     get_dns_record_id,
-    update_dns_record
+    update_dns_record,
 )
 
 
@@ -83,13 +83,13 @@ def cloudflare_apps():
 
         def main():
             for ipv4_address in ips:
-                match ipv4_address['id']:
-                    case 'racknerd':
-                        cloudflare_dns_name = 'vpn.jstockley.com'
-                    case 'iowa':
-                        cloudflare_dns_name = 'iowa.vpn.jstockley.com'
-                    case 'chicago':
-                        cloudflare_dns_name = 'chicago.vpn.jstockley.com'
+                match ipv4_address["id"]:
+                    case "racknerd":
+                        cloudflare_dns_name = "vpn.jstockley.com"
+                    case "iowa":
+                        cloudflare_dns_name = "iowa.vpn.jstockley.com"
+                    case "chicago":
+                        cloudflare_dns_name = "chicago.vpn.jstockley.com"
                     case _:
                         cloudflare_dns_name = None
 
@@ -125,9 +125,7 @@ def cloudflare_apps():
 
         def main():
 
-            ips = [
-                item["ip_address"] for item in ips_dict if "ip_address" in item
-            ]
+            ips = [item["ip_address"] for item in ips_dict if "ip_address" in item]
 
             for app in apps:
                 app_id = get_zero_trust_app_ids(dns_zone_id, app, cloudflare_api_key)
