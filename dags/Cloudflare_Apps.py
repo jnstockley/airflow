@@ -6,13 +6,16 @@ from airflow.decorators import task
 from airflow.models import Variable, TaskInstance
 from airflow.models.dag import dag
 
-from cloudflare.cloudflare_api import (
+from plugins.cloudflare.cloudflare_api import (
     get_dns_zone_id,
     get_zero_trust_app_ids,
     get_app_policy_ids,
     delete_app_policies,
     create_app_policy,
+    get_dns_record_id,
+    update_dns_record
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -57,9 +60,7 @@ def cloudflare_apps():
                     f"Failed to get IPs from API. Status code: {response.status_code} -> "
                     f"{response.json()}"
                 )
-            return [
-                item["ip_address"] for item in response.json() if "ip_address" in item
-            ]
+            return response.json()
 
         def main():
             logger.info("Getting DNS zone ID")
@@ -74,13 +75,59 @@ def cloudflare_apps():
         main()
 
     @task()
+    def update_cloudflare_dns_record(ti: TaskInstance):
+        ips = ti.xcom_pull(key="ips")
+
+        dns_zone_name = Variable.get("CLOUDFLARE_ZONE_NAME")
+        cloudflare_api_key = Variable.get("CLOUDFLARE_API_KEY")
+
+        def main():
+            for ipv4_address in ips:
+                match ipv4_address['id']:
+                    case 'racknerd':
+                        cloudflare_dns_name = 'vpn.jstockley.com'
+                    case 'iowa':
+                        cloudflare_dns_name = 'iowa.vpn.jstockley.com'
+                    case 'chicago':
+                        cloudflare_dns_name = 'chicago.vpn.jstockley.com'
+                    case _:
+                        cloudflare_dns_name = None
+
+                if cloudflare_dns_name is None:
+                    logger.error(f"Failed to get DNS zone name {ipv4_address['id']}")
+                    continue
+
+                logger.info("Getting DNS zone ID")
+                dns_zone_id = get_dns_zone_id(dns_zone_name, cloudflare_api_key)
+
+                logger.info("Getting IPV4 DNS record ID")
+                ipv4_record_id = get_dns_record_id(
+                    dns_zone_id, cloudflare_dns_name, cloudflare_api_key, False
+                )
+                logger.info("Updating IPV4 DNS records")
+                update_dns_record(
+                    ipv4_address["ip_address"],
+                    dns_zone_id,
+                    ipv4_record_id,
+                    cloudflare_dns_name,
+                    cloudflare_api_key,
+                    False,
+                )
+
+        main()
+
+    @task()
     def update_cloudflare_apps(ti: TaskInstance):
         dns_zone_id = ti.xcom_pull(key="dns_zone_id")
-        ips: list[str] = ti.xcom_pull(key="ips")
+        ips_dict: dict = ti.xcom_pull(key="ips")
         apps: list[str] = Variable.get("CLOUDFLARE_APPS").split("|")
         cloudflare_api_key = Variable.get("CLOUDFLARE_API_KEY")
 
         def main():
+
+            ips = [
+                item["ip_address"] for item in ips_dict if "ip_address" in item
+            ]
 
             for app in apps:
                 app_id = get_zero_trust_app_ids(dns_zone_id, app, cloudflare_api_key)
@@ -91,7 +138,7 @@ def cloudflare_apps():
 
         main()
 
-    get_all_ips() >> update_cloudflare_apps()
+    get_all_ips() >> update_cloudflare_dns_record() >> update_cloudflare_apps()
 
 
 cloudflare_apps()
