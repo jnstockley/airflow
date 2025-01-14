@@ -6,6 +6,9 @@
   "baseBranches": [
     "beta"
   ],
+  "assignees": [
+    "jnstockley"
+  ],
   "ignoreDeps": [
     "aiohttp",
     "psycopg2-binary"
