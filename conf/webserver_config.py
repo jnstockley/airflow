@@ -25,7 +25,6 @@ class AuthOIDCView(AuthOIDView):
 
         @self.appbuilder.sm.oid.require_login
         def handle_login():
-
             oidc_profile: dict = session["oidc_auth_profile"]
 
             user = sm.auth_user_oid(oidc_profile["email"])
@@ -71,14 +70,24 @@ class AuthOIDCView(AuthOIDView):
 
     @expose("/logout/", methods=["GET", "POST"])
     def logout(self):
+        oidc_auth_token: dict = session['oidc_auth_token']
+
+        logout_url = None
+        if 'id_token' in oidc_auth_token.keys():
+            id_token = oidc_auth_token['id_token']
+            logout_url = f"{OIDC_LOGOUT_URI}"
+
         oidc = self.appbuilder.sm.oid
         if len(session) == 0:
             return redirect("/login/")
         self.revoke_token()
         oidc.logout()
         super(AuthOIDCView, self).logout()
-        response = make_response("You have been signed out")
-        return response
+        if logout_url:
+            return redirect(logout_url)
+        else:
+            response = make_response("You have been signed out")
+            return response
 
     def revoke_token(self):
         """Revokes the provided access token. Sends a POST request to the token revocation endpoint"""
@@ -108,9 +117,16 @@ class AuthOIDCView(AuthOIDView):
 
         flask.session.clear()
 
+        print("session cleared")
+
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(revoke())
+
+    @expose("/oidc_logout/", methods=["GET"])
+    def oidc_logout(self):
+        response = make_response("You have been signed out")
+        return response
 
 
 class OIDCSecurityManager(AirflowSecurityManager):
@@ -147,10 +163,10 @@ OIDC_CLIENT_SECRETS = {
         "issuer": f"{Variable.get("ISSUER")}",
         "client_id": Variable.get("CLIENT_ID"),
         "client_secret": Variable.get("CLIENT_SECRET"),
-        "auth_uri": f'{Variable.get("ISSUER")}/authorize/',
+        "auth_uri": f'{Variable.get("ISSUER")}authorize/',
         "redirect_urls": [url],
-        "token_uri": f'{Variable.get("ISSUER")}/token/',
-        "userinfo_uri": f'{Variable.get("ISSUER")}/userinfo/',
+        "token_uri": f'{Variable.get("ISSUER")}token/',
+        "userinfo_uri": f'{Variable.get("ISSUER")}userinfo/',
     }
 }
 
@@ -161,7 +177,7 @@ OIDC_URL = OIDC_APPCONFIG.get("web", {}).get("issuer")
 if not OIDC_URL:
     raise ValueError("Invalid OIDC client configuration, Iowa OIDC URI not specified.")
 
-OIDC_LOGOUT_URI = f"{OIDC_URL}/airflow/end-session/"
+OIDC_LOGOUT_URI = f"{OIDC_URL}end-session/"
 
 OIDC_SCOPES = ["openid", "profile", "email"]
 
