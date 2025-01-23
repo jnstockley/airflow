@@ -70,24 +70,13 @@ class AuthOIDCView(AuthOIDView):
 
     @expose("/logout/", methods=["GET", "POST"])
     def logout(self):
-        oidc_auth_token: dict = session['oidc_auth_token']
-
-        logout_url = None
-        if 'id_token' in oidc_auth_token.keys():
-            id_token = oidc_auth_token['id_token']
-            logout_url = f"{OIDC_LOGOUT_URI}"
-
         oidc = self.appbuilder.sm.oid
         if len(session) == 0:
             return redirect("/login/")
         self.revoke_token()
         oidc.logout()
         super(AuthOIDCView, self).logout()
-        if logout_url:
-            return redirect(logout_url)
-        else:
-            response = make_response("You have been signed out")
-            return response
+        return redirect(OIDC_LOGOUT_URI)
 
     def revoke_token(self):
         """Revokes the provided access token. Sends a POST request to the token revocation endpoint"""
@@ -116,8 +105,6 @@ class AuthOIDCView(AuthOIDView):
                     logging.info(f"Revoke response {response.status}")
 
         flask.session.clear()
-
-        print("session cleared")
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
