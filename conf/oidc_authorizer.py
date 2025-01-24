@@ -1,3 +1,5 @@
+import os
+
 from airflow.models import Variable
 from flask import redirect
 from flask_appbuilder import expose
@@ -15,7 +17,8 @@ FAB_PUBLIC_ROLE = "Public"  # The 'Public' role is given no permissions
 
 AUTHENTIK_ADMIN_ROLE = "authentik Admins"
 PROVIDER_NAME = "Authentik"
-JWKS_URL = f'{Variable.get("ISSUER")}/application/o/airflow-internal/jwks/'
+AUTHENTIK_APP_NANE = os.getenv("AUTHENTIK_APP_NANE")
+JWKS_URL = f'{Variable.get("ISSUER")}/application/o/{AUTHENTIK_APP_NANE}/jwks/'
 
 
 def map_roles(team_list: list) -> list:
@@ -37,7 +40,7 @@ class AuthentikAuthRemoteUserView(AuthOAuthView):
     def logout(self):
         logout_user()
         return redirect(
-            f'{Variable.get("ISSUER")}/application/o/airflow-internal/end-session/'
+            f'{Variable.get("ISSUER")}/application/o/{AUTHENTIK_APP_NANE}/end-session/'
         )
 
 
