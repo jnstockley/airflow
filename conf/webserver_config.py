@@ -5,7 +5,7 @@ from airflow.models import Variable
 from cryptography.fernet import Fernet
 from flask_appbuilder.security.manager import AUTH_OAUTH
 
-from oidc_authorizer import AuthentikRoleAuthorizer, PROVIDER_NAME, JWKS_URL
+from oidc_authorizer import AuthentikRoleAuthorizer, PROVIDER_NAME, JWKS_URL, AUTHENTIK_APP_NANE
 
 SECURITY_MANAGER_CLASS = AuthentikRoleAuthorizer
 
@@ -27,7 +27,7 @@ OAUTH_PROVIDERS = [
             "client_id": Variable.get("CLIENT_ID"),
             "client_secret": Variable.get("CLIENT_SECRET"),
             "api_base_url": f"{Variable.get("ISSUER")}/",
-            "server_metadata_url": f'{Variable.get("ISSUER")}/application/o/airflow-internal/.well-known/'
+            "server_metadata_url": f'{Variable.get("ISSUER")}/application/o/{AUTHENTIK_APP_NANE}/.well-known/'
             f"openid-configuration",
             "client_kwargs": {
                 "scope": "openid profile email",
