@@ -5,7 +5,12 @@ from airflow.models import Variable
 from cryptography.fernet import Fernet
 from flask_appbuilder.security.manager import AUTH_OAUTH
 
-from oidc_authorizer import AuthentikRoleAuthorizer, PROVIDER_NAME, JWKS_URL, AUTHENTIK_APP_NANE
+from oidc_authorizer import (
+    AuthentikRoleAuthorizer,
+    PROVIDER_NAME,
+    JWKS_URL,
+    AUTHENTIK_APP_NANE,
+)
 
 SECURITY_MANAGER_CLASS = AuthentikRoleAuthorizer
 
