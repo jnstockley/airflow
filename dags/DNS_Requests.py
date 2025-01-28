@@ -32,6 +32,7 @@ env = Variable.get("env")
             1, type="integer", description="The number of hours since the last request"
         ),
     },
+    dagrun_timeout=timedelta(seconds=60),
 )
 def dns_requests():
     @task()

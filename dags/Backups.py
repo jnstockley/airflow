@@ -32,6 +32,7 @@ env = Variable.get("env")
             2, type="integer", description="The number of hours since the backup sync"
         ),
     },
+    dagrun_timeout=timedelta(seconds=60),
 )
 def backup():
     iowa_home_host = Variable.get("BACKUP_IOWA_HOME_HOST")
