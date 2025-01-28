@@ -40,6 +40,7 @@ CLOUDFLARE_API = "https://api.cloudflare.com/client/v4"
     default_args=default_args,
     catchup=False,
     tags=["cloudflare", "infrastructure"],
+    dagrun_timeout=timedelta(seconds=60),
 )
 def cloudflare_apps():
     @task()

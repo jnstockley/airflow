@@ -27,6 +27,7 @@ env = Variable.get("env")
     default_args=default_args,
     catchup=False,
     tags=["speedtest", "infrastructure"],
+    dagrun_timeout=timedelta(seconds=60),
 )
 def speedtest():
     iowa_host = Variable.get("SPEEDTEST_IOWA_HOST")

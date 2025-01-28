@@ -1,6 +1,8 @@
 import logging
 import os
 import shutil
+import time
+
 import math
 
 from airflow.decorators import task
@@ -30,6 +32,7 @@ default_args = {
     default_args=default_args,
     catchup=False,
     tags=["maintenance"],
+    dagrun_timeout=timedelta(seconds=60),
 )
 def cleanup():
 
