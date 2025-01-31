@@ -125,7 +125,6 @@ def cloudflare_apps():
         cloudflare_api_key = Variable.get("CLOUDFLARE_API_KEY")
 
         def main():
-
             ips = [item["ip_address"] for item in ips_dict if "ip_address" in item]
 
             for app in apps:

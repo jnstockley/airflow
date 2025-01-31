@@ -1,7 +1,6 @@
 import logging
 import os
 import shutil
-import time
 
 import math
 
@@ -35,7 +34,6 @@ default_args = {
     dagrun_timeout=timedelta(seconds=60),
 )
 def cleanup():
-
     @task()
     def cleanup_logs():
         file_list = []

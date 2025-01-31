@@ -18,7 +18,7 @@ FAB_PUBLIC_ROLE = "Public"  # The 'Public' role is given no permissions
 AUTHENTIK_ADMIN_ROLE = "authentik Admins"
 PROVIDER_NAME = "Authentik"
 AUTHENTIK_APP_NANE = os.getenv("AUTHENTIK_APP_NANE")
-JWKS_URL = f'{Variable.get("ISSUER")}/application/o/{AUTHENTIK_APP_NANE}/jwks/'
+JWKS_URL = f"{Variable.get('ISSUER')}/application/o/{AUTHENTIK_APP_NANE}/jwks/"
 
 
 def map_roles(team_list: list) -> list:
@@ -29,7 +29,6 @@ def map_roles(team_list: list) -> list:
 
 
 class AuthentikAuthRemoteUserView(AuthOAuthView):
-
     @expose("/login/")
     @expose("/login/<provider>")
     @expose("/login/<provider>/<register>")
@@ -40,12 +39,11 @@ class AuthentikAuthRemoteUserView(AuthOAuthView):
     def logout(self):
         logout_user()
         return redirect(
-            f'{Variable.get("ISSUER")}/application/o/{AUTHENTIK_APP_NANE}/end-session/'
+            f"{Variable.get('ISSUER')}/application/o/{AUTHENTIK_APP_NANE}/end-session/"
         )
 
 
 class AuthentikRoleAuthorizer(FabAirflowSecurityManagerOverride):
-
     authoauthview = AuthentikAuthRemoteUserView
 
     def get_oauth_user_info(self, provider: str, resp: Any) -> dict:

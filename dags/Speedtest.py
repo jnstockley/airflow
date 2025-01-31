@@ -42,7 +42,6 @@ def speedtest():
 
     @task()
     def speed():
-
         def speed_check(
             host: str, api_key: str, upload_limit: float, download_limit: float
         ):
@@ -79,11 +78,10 @@ def speedtest():
                         logger.error(e)
 
             assert upload >= upload_limit, (
-                f"{host} -> Upload speed below limit: {upload} for location: " f"{host}"
+                f"{host} -> Upload speed below limit: {upload} for location: {host}"
             )
             assert download >= download_limit, (
-                f"{host} -> Download speed below limit: {download} for location: "
-                f"{host}"
+                f"{host} -> Download speed below limit: {download} for location: {host}"
             )
 
         def main():
