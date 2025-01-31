@@ -52,7 +52,6 @@ def backup():
 
     @task()
     def paused():
-
         def heath_check(host: str, api_key: str):
             url = f"{host}/rest/noauth/health"
             headers = {"Authorization": f"Bearer {api_key}"}
@@ -87,15 +86,15 @@ def backup():
 
             for folder in folders:
                 data = dict(folder)
-                assert (
-                    "paused" in data
-                ), f"{host} -> Invalid response message missing `paused`: {folder}"
-                assert (
-                    "label" in data
-                ), f"{host} -> Invalid response message missing `label`: {folder}"
-                assert not data[
-                    "paused"
-                ], f"{host} -> {data['label']} is paused on {host}"
+                assert "paused" in data, (
+                    f"{host} -> Invalid response message missing `paused`: {folder}"
+                )
+                assert "label" in data, (
+                    f"{host} -> Invalid response message missing `label`: {folder}"
+                )
+                assert not data["paused"], (
+                    f"{host} -> {data['label']} is paused on {host}"
+                )
 
         def main():
             logger.info("Checking Iowa Home Paused Status")
@@ -145,9 +144,9 @@ def backup():
 
             folders = response.json()
             for folder, data in folders.items():
-                assert (
-                    "lastScan" in data
-                ), f"{host} -> Invalid response message missing `lastScan`: {data}"
+                assert "lastScan" in data, (
+                    f"{host} -> Invalid response message missing `lastScan`: {data}"
+                )
                 last_scan = datetime.fromisoformat(data["lastScan"]).timestamp()
                 assert last_scan >= outdated_time, (
                     f"{host} -> {folder} is out of sync on {host}, "

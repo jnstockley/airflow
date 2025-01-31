@@ -31,16 +31,16 @@ OAUTH_PROVIDERS = [
         "remote_app": {
             "client_id": Variable.get("CLIENT_ID"),
             "client_secret": Variable.get("CLIENT_SECRET"),
-            "api_base_url": f"{Variable.get("ISSUER")}/",
-            "server_metadata_url": f'{Variable.get("ISSUER")}/application/o/{AUTHENTIK_APP_NANE}/.well-known/'
+            "api_base_url": f"{Variable.get('ISSUER')}/",
+            "server_metadata_url": f"{Variable.get('ISSUER')}/application/o/{AUTHENTIK_APP_NANE}/.well-known/"
             f"openid-configuration",
             "client_kwargs": {
                 "scope": "openid profile email",
             },
-            "authorize_url": f'{Variable.get("ISSUER")}/application/o/authorize/',
-            "access_token_url": f'{Variable.get("ISSUER")}/application/o/token/',
+            "authorize_url": f"{Variable.get('ISSUER')}/application/o/authorize/",
+            "access_token_url": f"{Variable.get('ISSUER')}/application/o/token/",
             "request_token_url": None,
-            "userinfo_url": f'{Variable.get("ISSUER")}/application/o/userinfo/',
+            "userinfo_url": f"{Variable.get('ISSUER')}/application/o/userinfo/",
             "jwks_uri": JWKS_URL,
         },
     }
