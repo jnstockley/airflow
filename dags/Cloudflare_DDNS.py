@@ -9,15 +9,16 @@ from airflow.models.dag import dag
 
 logger = logging.getLogger(__name__)
 
+env = Variable.get("env")
+
+
 default_args = {
     "owner": "jackstockley",
-    "retries": 0,
-    "retry_delay": timedelta(minutes=5),
+    "retries": 2,
+    "retry_delay": timedelta(minutes=1),
     "email": ["jack@jstockley.com"],
-    "email_on_failure": True,
+    "email_on_failure": env == "prod",
 }
-
-env = Variable.get("env")
 
 
 @dag(

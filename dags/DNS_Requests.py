@@ -8,15 +8,15 @@ from airflow.models.dag import dag
 
 logger = logging.getLogger(__name__)
 
+env = Variable.get("env")
+
 default_args = {
     "owner": "jackstockley",
-    "retries": 0,
+    "retries": 2,
     "retry_delay": timedelta(minutes=5),
     "email": ["jack@jstockley.com"],
-    "email_on_failure": True,
+    "email_on_failure": env == "prod",
 }
-
-env = Variable.get("env")
 
 
 @dag(
@@ -36,10 +36,9 @@ env = Variable.get("env")
 )
 def dns_requests():
     @task()
-    def check_requests(params: dict):
+    def check_requests(client: str, params: dict):
         dns_host = Variable.get("DNS_HOST")
         api_key = Variable.get("DNS_API_KEY")
-        clients: list[str] = Variable.get("DNS_CLIENTS").split("|")
         outdated_interval: int = params["outdated_interval"]
         outdated_time = (
             datetime.now() - timedelta(hours=outdated_interval)
@@ -47,38 +46,38 @@ def dns_requests():
 
         headers = {"Authorization": f"Basic {api_key}"}
 
-        for client in clients:
-            url = f"{dns_host}querylog?search={client}&limit=1"
-            response = requests.get(url, headers=headers)
+        url = f"{dns_host}querylog?search={client}&limit=1"
+        response = requests.get(url, headers=headers)
 
-            if response.status_code != 200:
-                logger.error(
-                    f"Response code: {response.status_code}, when it should be 200 ->"
-                    f" {response.json()}"
-                )
-                raise ConnectionError(
-                    f"Response code: {response.status_code}, when it should be 200 -> "
-                    f"{response.json()}"
-                )
-
-            if "oldest" not in response.json():
-                logger.error(
-                    f"Invalid response message, missing `oldest`: {response.json()}"
-                )
-                raise ValueError(
-                    f"Invalid response message, missing `oldest`: {response.json()}"
-                )
-
-            last_request = datetime.fromisoformat(response.json()["oldest"]).timestamp()
-            logger.info(
-                f"{client} -> Last request received for {client}: {response.json()['oldest']}"
+        if response.status_code != 200:
+            logger.error(
+                f"Response code: {response.status_code}, when it should be 200 ->"
+                f" {response.json()}"
+            )
+            raise ConnectionError(
+                f"Response code: {response.status_code}, when it should be 200 -> "
+                f"{response.json()}"
             )
 
-            if last_request < outdated_time:
-                logger.error(f"Last request received for {client}: {last_request}")
-                raise ValueError(f"Last request received for {client}: {last_request}")
+        if "oldest" not in response.json():
+            logger.error(
+                f"Invalid response message, missing `oldest`: {response.json()}"
+            )
+            raise ValueError(
+                f"Invalid response message, missing `oldest`: {response.json()}"
+            )
 
-    check_requests()
+        last_request = datetime.fromisoformat(response.json()["oldest"]).timestamp()
+        logger.info(
+            f"{client} -> Last request received for {client}: {response.json()['oldest']}"
+        )
+
+        if last_request < outdated_time:
+            logger.error(f"Last request received for {client}: {last_request}")
+            raise ValueError(f"Last request received for {client}: {last_request}")
+
+    clients: list[str] = Variable.get("DNS_CLIENTS").split("|")
+    check_requests.expand(client=clients)
 
 
 dns_requests()
