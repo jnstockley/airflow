@@ -19,9 +19,8 @@ default_args = {
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
     "email": ["jack@jstockley.com"],
-    "email_on_failure": True,
+    "email_on_failure": env == "prod",
 }
-
 
 @dag(
     dag_id="Airflow-Cleanup",
