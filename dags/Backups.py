@@ -22,7 +22,7 @@ env = Variable.get("env")
 @dag(
     dag_id="Backups",
     description="Checks if backups have been made within a certain period of time",
-    schedule_interval="@once" if env == "dev" else "0 * * * *",
+    schedule="@once" if env == "dev" else "0 * * * *",
     start_date=datetime(2024, 12, 16),
     default_args=default_args,
     catchup=False,
@@ -179,3 +179,6 @@ def backup():
 
 
 backup()
+
+if __name__ == "__main__":
+    backup().test()

@@ -22,7 +22,7 @@ env = Variable.get("env")
 @dag(
     dag_id="DNS-Requests",
     description="Checks if DNS requests have been made within a certain period of time",
-    schedule_interval="@once" if env == "dev" else "0 * * * *",
+    schedule="@once" if env == "dev" else "0 * * * *",
     start_date=datetime(2024, 3, 4),
     default_args=default_args,
     catchup=False,
@@ -82,3 +82,6 @@ def dns_requests():
 
 
 dns_requests()
+
+if __name__ == "__main__":
+    dns_requests().test()

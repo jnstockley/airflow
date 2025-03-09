@@ -27,7 +27,7 @@ default_args = {
     dag_id="Airflow-Cleanup",
     description="Cleanup logs and data folders",
     start_date=datetime(2024, 9, 2),
-    schedule_interval="@once" if env == "dev" else "@daily",
+    schedule="@once" if env == "dev" else "@daily",
     default_args=default_args,
     catchup=False,
     tags=["maintenance"],
@@ -90,3 +90,6 @@ def cleanup():
 
 
 cleanup()
+
+if __name__ == '__main__':
+    cleanup().test()

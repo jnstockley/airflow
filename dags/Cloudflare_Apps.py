@@ -35,7 +35,7 @@ CLOUDFLARE_API = "https://api.cloudflare.com/client/v4"
 @dag(
     dag_id="Cloudflare-Apps",
     description="Update Cloudflare App allowed IP addresses",
-    schedule_interval="@once" if env == "dev" else "*/5 * * * *",
+    schedule="@once" if env == "dev" else "*/5 * * * *",
     start_date=datetime(2024, 3, 4),
     default_args=default_args,
     catchup=False,
@@ -140,3 +140,6 @@ def cloudflare_apps():
 
 
 cloudflare_apps()
+
+if __name__ == "__main__":
+    cloudflare_apps().test()
