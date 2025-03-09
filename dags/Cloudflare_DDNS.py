@@ -23,7 +23,7 @@ env = Variable.get("env")
 @dag(
     dag_id="Cloudflare-DDNS",
     description="Update the Cloudflare DNS record",
-    schedule_interval="@once" if env == "dev" else "*/5 * * * *",
+    schedule="@once" if env == "dev" else "*/5 * * * *",
     start_date=datetime(2024, 3, 4),
     default_args=default_args,
     catchup=False,
@@ -55,3 +55,6 @@ def cloudflare_ddns():
 
 
 cloudflare_ddns()
+
+if __name__ == "__main__":
+    cloudflare_ddns().test()
