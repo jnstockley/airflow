@@ -2,7 +2,7 @@ import logging
 from datetime import timedelta, datetime
 
 import requests
-from airflow.decorators import task, task_group
+from airflow.decorators import task
 from airflow.models import Variable, TaskInstance
 from airflow.models.dag import dag
 
@@ -47,7 +47,6 @@ def cloudflare_apps():
     def get_all_ips(ti: TaskInstance):
         api_key = Variable.get("API_KEY")
 
-
         logger.info("Getting IPs from API")
         headers = {"x-api-key": api_key}
         response = requests.get("https://api.jstockley.com/ip/", headers=headers)
@@ -66,7 +65,6 @@ def cloudflare_apps():
 
         return ips
 
-
     @task()
     def dns_zone_id(ti: TaskInstance):
         dns_zone_name = Variable.get("CLOUDFLARE_ZONE_NAME")
@@ -78,7 +76,6 @@ def cloudflare_apps():
 
     @task()
     def update_cloudflare_dns_record(ip: dict):
-
         dns_zone_name = Variable.get("CLOUDFLARE_ZONE_NAME")
         cloudflare_api_key = Variable.get("CLOUDFLARE_API_KEY")
 
@@ -142,6 +139,7 @@ def cloudflare_apps():
     # Set dependencies
     ips >> update_dns_tasks
     [ips, cloudflare_dns_zone_id] >> update_app_tasks
+
 
 cloudflare_apps()
 

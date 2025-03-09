@@ -22,6 +22,7 @@ default_args = {
     "email_on_failure": env == "prod",
 }
 
+
 @dag(
     dag_id="Airflow-Cleanup",
     description="Cleanup logs and data folders",
@@ -90,5 +91,5 @@ def cleanup():
 
 cleanup()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cleanup().test()
