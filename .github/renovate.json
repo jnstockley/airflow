@@ -13,6 +13,9 @@
     "aiohttp",
     "psycopg2-binary"
   ],
+  "pip_requirements": {
+    "fileMatch": ["(^|/)requirements(_.*)?.txt$"]
+  },
   "packageRules": [
     {
       "matchDatasources": [
