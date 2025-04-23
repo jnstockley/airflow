@@ -20,11 +20,9 @@ COPY --from=build home/airflow/.local/ /home/airflow/.local/
 
 ENV PYTHONPATH "${PYTHONPATH}:/opt/airflow/plugins"
 
-ENV PATH="/root/.local/bin:${PATH}"
+ENV PATH="/home/airflow/.local/bin:${PATH}"
 
-COPY conf/webserver_config.py /opt/airflow
-
-COPY conf/oidc_authorizer.py /opt/airflow
+COPY config/webserver_config.py /opt/airflow
 
 COPY plugins /opt/airflow/plugins
 
