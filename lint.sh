@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
 # Run linter
-ruff check
-ruff format --check
+uvx ruff check
+uvx ruff format --check

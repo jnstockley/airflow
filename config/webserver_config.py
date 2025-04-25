@@ -5,7 +5,7 @@ import jwt
 import logging
 
 from airflow.models import Variable
-from flask import redirect
+from flask import redirect, session
 from flask_appbuilder import expose
 from flask_appbuilder.security.manager import AUTH_OAUTH
 from airflow.providers.fab.auth_manager.security_manager.override import (
@@ -23,8 +23,6 @@ AUTH_ROLES_SYNC_AT_LOGIN = True
 AUTH_USER_REGISTRATION_ROLE = "Public"
 
 AUTHENTIK_APP_NAME = os.environ["AUTHENTIK_APP_NANE"]
-
-OIDC_ISSUER = f"{Variable.get('ISSUER')}/application/o/{AUTHENTIK_APP_NAME}/jwks/"
 
 # Make sure you create these role on Keycloak
 AUTH_ROLES_MAPPING = {
@@ -71,6 +69,7 @@ class AuthentikAuthRemoteUserView(AuthOAuthView):
     @expose("/logout/", methods=["GET", "POST"])
     def logout(self):
         logout_user()
+        session.clear()
         return redirect(
             f"{Variable.get('ISSUER')}/application/o/{AUTHENTIK_APP_NAME}/end-session/"
         )
@@ -85,7 +84,7 @@ class AuthentikSecurityManager(FabAirflowSecurityManagerOverride):
                 "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:134.0) Gecko/20100101 Firefox/134.0"
             }
             token = response["access_token"]
-            jwks_client = PyJWKClient(OIDC_ISSUER, headers=headers)
+            jwks_client = PyJWKClient(f"{Variable.get('ISSUER')}/application/o/{AUTHENTIK_APP_NAME}/jwks/", headers=headers)
             public_key = jwks_client.get_signing_key_from_jwt(token)
             audience = response["userinfo"]["aud"]
             subject = response["userinfo"]["sub"]
