@@ -20,7 +20,6 @@ log = logging.getLogger(__name__)
 AUTH_TYPE = AUTH_OAUTH
 AUTH_USER_REGISTRATION = True
 AUTH_ROLES_SYNC_AT_LOGIN = True
-AUTH_USER_REGISTRATION_ROLE = "Public"
 
 AUTHENTIK_APP_NAME = os.environ["AUTHENTIK_APP_NANE"]
 
@@ -108,7 +107,7 @@ class AuthentikSecurityManager(FabAirflowSecurityManagerOverride):
             log.info("groups: {0}".format(groups))
 
             if not groups:
-                groups = ["Viewer"]
+                groups = ["Public"]
 
             userinfo = {
                 "username": me.get("preferred_username"),
