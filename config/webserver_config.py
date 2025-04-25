@@ -84,7 +84,10 @@ class AuthentikSecurityManager(FabAirflowSecurityManagerOverride):
                 "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:134.0) Gecko/20100101 Firefox/134.0"
             }
             token = response["access_token"]
-            jwks_client = PyJWKClient(f"{Variable.get('ISSUER')}/application/o/{AUTHENTIK_APP_NAME}/jwks/", headers=headers)
+            jwks_client = PyJWKClient(
+                f"{Variable.get('ISSUER')}/application/o/{AUTHENTIK_APP_NAME}/jwks/",
+                headers=headers,
+            )
             public_key = jwks_client.get_signing_key_from_jwt(token)
             audience = response["userinfo"]["aud"]
             subject = response["userinfo"]["sub"]

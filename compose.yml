@@ -4,6 +4,15 @@ x-airflow-common:
   build: .
   env_file:
     - .env
+  environment:
+    - AIRFLOW__WEBSERVER__BASE_URL=http://localhost:8080
+    - TZ=America/Chicago
+    - AIRFLOW__CORE__DEFAULT_TIMEZONE=America/Chicago
+    - AIRFLOW__WEBSERVER__DEFAULT_UI_TIMEZONE=America/Chicago
+    - AIRFLOW__CORE__EXECUTION_API_SERVER_URL=http://airflow-apiserver:8080/execution/
+    - AIRFLOW_VAR_ENV=dev
+    - REDIS_URI=redis://redis:6379/0
+    - AUTHENTIK_APP_NANE=airflow-dev
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
