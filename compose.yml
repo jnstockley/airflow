@@ -5,18 +5,23 @@ x-airflow-common:
   env_file:
     - .env
   environment:
-    - AIRFLOW__WEBSERVER__BASE_URL=http://localhost:8080
-    - TZ=America/Chicago
-    - AIRFLOW__CORE__DEFAULT_TIMEZONE=America/Chicago
-    - AIRFLOW__WEBSERVER__DEFAULT_UI_TIMEZONE=America/Chicago
-    - AIRFLOW__CORE__EXECUTION_API_SERVER_URL=http://airflow-apiserver:8080/execution/
-    - AIRFLOW_VAR_ENV=dev
-    - REDIS_URI=redis://redis:6379/0
-    - AUTHENTIK_APP_NANE=airflow-dev
+    &airflow-common-env
+    AIRFLOW__WEBSERVER__BASE_URL: http://localhost:8080
+    TZ: America/Chicago
+    AIRFLOW__CORE__DEFAULT_TIMEZONE: America/Chicago
+    AIRFLOW__WEBSERVER__DEFAULT_UI_TIMEZONE: America/Chicago
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    AIRFLOW_VAR_ENV: dev
+    REDIS_URI: redis://redis:6379/0
+    AUTHENTIK_APP_NANE: airflow-dev
+    AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+    AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
+    - ./config:/opt/airflow/config
     - ./plugins:/opt/airflow/plugins
+    - ./data:/opt/airflow/data
   depends_on:
     &airflow-common-depends-on
     redis:
@@ -55,7 +60,7 @@ services:
       start_period: 30s
     restart: always
 
-  api-server:
+  airflow-apiserver:
     <<: *airflow-common
     container_name: airflow-api-server
     command: api-server
@@ -70,10 +75,10 @@ services:
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
-      init:
+      airflow-init:
         condition: service_completed_successfully
 
-  scheduler:
+  airflow-scheduler:
     <<: *airflow-common
     container_name: airflow-scheduler
     command: scheduler
@@ -86,10 +91,10 @@ services:
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
-      init:
+      airflow-init:
         condition: service_completed_successfully
 
-  dag-processor:
+  airflow-dag-processor:
     <<: *airflow-common
     container_name: airflow-dag-processor
     command: dag-processor
@@ -102,10 +107,10 @@ services:
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
-      init:
+      airflow-init:
         condition: service_completed_successfully
 
-  triggerer:
+  airflow-triggerer:
     <<: *airflow-common
     container_name: airflow-triggerer
     command: triggerer
@@ -118,21 +123,18 @@ services:
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
-      init:
+      airflow-init:
         condition: service_completed_successfully
 
-  init:
+  airflow-init:
     <<: *airflow-common
     container_name: airflow-init
     command: version
     env_file:
       - .env
     environment:
+      <<: *airflow-common-env
       _AIRFLOW_DB_MIGRATE: 'true'
-      _AIRFLOW_WWW_USER_USERNAME: airflow
-      _AIRFLOW_WWW_USER_PASSWORD: airflow
-    volumes:
-      - .:/sources
 
 volumes:
   postgres-db-volume:
