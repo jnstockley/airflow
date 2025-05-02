@@ -30,17 +30,14 @@ default_args = {
         ),
     },
     dagrun_timeout=timedelta(seconds=60),
-    on_failure_callback=SmtpNotifier(
-        to="jack@jstockley.com",
-        smtp_conn_id="SMTP"
-    )
+    on_failure_callback=SmtpNotifier(to="jack@jstockley.com", smtp_conn_id="SMTP"),
 )
 def backup():
     iowa_home_host = Variable.get("BACKUP_IOWA_HOME_HOST")
     iowa_home_api_key = Variable.get("BACKUP_IOWA_HOME_API_KEY")
 
-    #chicago_home_host = Variable.get("BACKUP_CHICAGO_HOME_HOST")
-    #chicago_home_api_key = Variable.get("BACKUP_CHICAGO_HOME_API_KEY")
+    # chicago_home_host = Variable.get("BACKUP_CHICAGO_HOME_HOST")
+    # chicago_home_api_key = Variable.get("BACKUP_CHICAGO_HOME_API_KEY")
 
     backup_server_host = Variable.get("BACKUP_BACKUP_SERVER_HOST")
     backup_server_api_key = Variable.get("BACKUP_BACKUP_SERVER_API_KEY")
@@ -102,9 +99,9 @@ def backup():
             heath_check(iowa_home_host, iowa_home_api_key)
             check_paused(iowa_home_host, iowa_home_api_key)
 
-            #logger.info("Checking Chicago Home Paused Status")
-            #heath_check(chicago_home_host, chicago_home_api_key)
-            #check_paused(chicago_home_host, chicago_home_api_key)
+            # logger.info("Checking Chicago Home Paused Status")
+            # heath_check(chicago_home_host, chicago_home_api_key)
+            # check_paused(chicago_home_host, chicago_home_api_key)
 
             logger.info("Checking Backup Server Paused Status")
             heath_check(backup_server_host, backup_server_api_key)
@@ -158,8 +155,8 @@ def backup():
             logger.info("Checking Iowa Home Outdated Status")
             check_status(iowa_home_host, iowa_home_api_key)
 
-            #logger.info("Checking Chicago Home Outdated Status")
-            #check_status(chicago_home_host, chicago_home_api_key)
+            # logger.info("Checking Chicago Home Outdated Status")
+            # check_status(chicago_home_host, chicago_home_api_key)
 
             logger.info("Checking Backup Server Outdated Status")
             check_status(backup_server_host, backup_server_api_key)

@@ -29,6 +29,26 @@ default_args = {
 CLOUDFLARE_API = "https://api.cloudflare.com/client/v4"
 
 
+def __get_all_ips():
+    api_key = Variable.get("API_KEY")
+
+    logger.info("Getting IPs from API")
+    headers = {"x-api-key": api_key}
+    response = requests.get("https://api.jstockley.com/ip/", headers=headers)
+    if response.status_code != 200:
+        logger.error(
+            f"Failed to get IPs from API. Status code: {response.status_code} -> "
+            f"{response.json()}"
+        )
+        raise ConnectionError(
+            f"Failed to get IPs from API. Status code: {response.status_code} -> "
+            f"{response.json()}"
+        )
+    ips = response.json()
+
+    return ips
+
+
 @dag(
     dag_id="Cloudflare-Apps",
     description="Update Cloudflare App allowed IP addresses",
@@ -38,42 +58,12 @@ CLOUDFLARE_API = "https://api.cloudflare.com/client/v4"
     catchup=False,
     tags=["cloudflare", "infrastructure"],
     dagrun_timeout=timedelta(seconds=60),
-    on_failure_callback=SmtpNotifier(
-        to="jack@jstockley.com",
-        smtp_conn_id="SMTP"
-    )
+    on_failure_callback=SmtpNotifier(to="jack@jstockley.com", smtp_conn_id="SMTP"),
 )
 def cloudflare_apps():
     @task
-    def get_all_ips(ti=None):
-        api_key = Variable.get("API_KEY")
-
-        logger.info("Getting IPs from API")
-        headers = {"x-api-key": api_key}
-        response = requests.get("https://api.jstockley.com/ip/", headers=headers)
-        if response.status_code != 200:
-            logger.error(
-                f"Failed to get IPs from API. Status code: {response.status_code} -> "
-                f"{response.json()}"
-            )
-            raise ConnectionError(
-                f"Failed to get IPs from API. Status code: {response.status_code} -> "
-                f"{response.json()}"
-            )
-        ips = response.json()
-
-        ti.xcom_push(key="ips_dict", value=ips)
-
-        return ips
-
-    @task
-    def dns_zone_id(ti=None):
-        dns_zone_name = Variable.get("CLOUDFLARE_ZONE_NAME")
-        cloudflare_api_key = Variable.get("CLOUDFLARE_API_KEY")
-        logger.info("Getting DNS zone ID")
-
-        dns_zone_id = get_dns_zone_id(dns_zone_name, cloudflare_api_key)
-        ti.xcom_push(key="dns_zone_id", value=dns_zone_id)
+    def get_all_ips():
+        return __get_all_ips()
 
     @task
     def update_cloudflare_dns_record(ip: dict):
@@ -114,13 +104,18 @@ def cloudflare_apps():
         main()
 
     @task()
-    def update_cloudflare_apps(app_name: str, ti=None):
-        ips_dict: dict = ti.xcom_pull(key="ips_dict")
-        dns_zone_id = ti.xcom_pull(key="dns_zone_id")
+    def update_cloudflare_apps(app_name: str):
+        ips_dict = __get_all_ips()
+        dns_zone_name = Variable.get("CLOUDFLARE_ZONE_NAME")
+        cloudflare_api_key = Variable.get("CLOUDFLARE_API_KEY")
+        logger.info("Getting DNS zone ID")
+        dns_zone_id = get_dns_zone_id(dns_zone_name, cloudflare_api_key)
         cloudflare_api_key = Variable.get("CLOUDFLARE_API_KEY")
 
         def main():
             ips = [item["ip_address"] for item in ips_dict if "ip_address" in item]
+
+            logger.info(f"{dns_zone_id}, {app_name}")
 
             app_id = get_zero_trust_app_ids(dns_zone_id, app_name, cloudflare_api_key)
             policy_ids = get_app_policy_ids(dns_zone_id, app_id, cloudflare_api_key)
@@ -132,14 +127,10 @@ def cloudflare_apps():
 
     apps = Variable.get("CLOUDFLARE_APPS").split("|")
 
-    ips = get_all_ips()
-    cloudflare_dns_zone_id = dns_zone_id()
-    update_dns_tasks = update_cloudflare_dns_record.expand(ip=ips)
-    #update_app_tasks = update_cloudflare_apps.expand(app_name=apps)
-
-    # Set dependencies
-    ips >> update_dns_tasks
-    [ips, cloudflare_dns_zone_id] #>> update_app_tasks
+    [
+        update_cloudflare_dns_record.expand(ip=get_all_ips()),
+        update_cloudflare_apps.expand(app_name=apps),
+    ]
 
 
 cloudflare_apps()

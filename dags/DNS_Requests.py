@@ -12,7 +12,7 @@ env = Variable.get("env")
 default_args = {
     "owner": "jackstockley",
     "retries": 2,
-    "retry_delay": timedelta(minutes=5)
+    "retry_delay": timedelta(minutes=5),
 }
 
 
@@ -30,10 +30,7 @@ default_args = {
         ),
     },
     dagrun_timeout=timedelta(seconds=60),
-    on_failure_callback=SmtpNotifier(
-        to="jack@jstockley.com",
-        smtp_conn_id="SMTP"
-    )
+    on_failure_callback=SmtpNotifier(to="jack@jstockley.com", smtp_conn_id="SMTP"),
 )
 def dns_requests():
     @task()

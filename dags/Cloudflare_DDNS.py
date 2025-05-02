@@ -27,10 +27,7 @@ default_args = {
     catchup=False,
     tags=["cloudflare", "infrastructure"],
     dagrun_timeout=timedelta(seconds=60),
-    on_failure_callback=SmtpNotifier(
-        to="jack@jstockley.com",
-        smtp_conn_id="SMTP"
-    )
+    on_failure_callback=SmtpNotifier(to="jack@jstockley.com", smtp_conn_id="SMTP"),
 )
 def cloudflare_ddns():
     @task()

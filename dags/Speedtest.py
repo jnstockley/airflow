@@ -12,7 +12,7 @@ env = Variable.get("env")
 default_args = {
     "owner": "jackstockley",
     "retries": 2,
-    "retry_delay": timedelta(minutes=5)
+    "retry_delay": timedelta(minutes=5),
 }
 
 
@@ -25,10 +25,7 @@ default_args = {
     catchup=False,
     tags=["speedtest", "infrastructure"],
     dagrun_timeout=timedelta(seconds=60),
-    on_failure_callback=SmtpNotifier(
-        to="jack@jstockley.com",
-        smtp_conn_id="SMTP"
-    )
+    on_failure_callback=SmtpNotifier(to="jack@jstockley.com", smtp_conn_id="SMTP"),
 )
 def speedtest():
     iowa_host = Variable.get("SPEEDTEST_IOWA_HOST")

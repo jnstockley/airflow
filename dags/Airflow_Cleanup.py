@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 default_args = {
     "owner": "jackstockley",
     "retries": 0,
-    "retry_delay": timedelta(minutes=5)
+    "retry_delay": timedelta(minutes=5),
 }
 
 
@@ -29,10 +29,7 @@ default_args = {
     catchup=False,
     tags=["maintenance"],
     dagrun_timeout=timedelta(seconds=60),
-    on_failure_callback=SmtpNotifier(
-        to="jack@jstockley.com",
-        smtp_conn_id="SMTP"
-    )
+    on_failure_callback=SmtpNotifier(to="jack@jstockley.com", smtp_conn_id="SMTP"),
 )
 def cleanup():
     @task()
@@ -88,8 +85,6 @@ def cleanup():
     cleanup_data()
     if "airflow" not in host:
         check_disk_usage()
-
-
 
 
 cleanup()
