@@ -2,9 +2,8 @@ import logging
 from datetime import timedelta, datetime
 
 import requests
-from airflow.decorators import task
-from airflow.models import Variable
-from airflow.models.dag import dag
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
+from airflow.sdk import Variable, dag, task
 
 
 logger = logging.getLogger(__name__)
@@ -16,20 +15,19 @@ default_args = {
     "owner": "jackstockley",
     "retries": 2,
     "retry_delay": timedelta(minutes=1),
-    "email": ["jack@jstockley.com"],
-    "email_on_failure": env == "prod",
 }
 
 
 @dag(
     dag_id="Cloudflare-DDNS",
     description="Update the Cloudflare DNS record",
-    schedule="@once" if env == "dev" else "*/5 * * * *",
+    schedule="*/5 * * * *" if not env == "dev" else None,
     start_date=datetime(2024, 3, 4),
     default_args=default_args,
     catchup=False,
     tags=["cloudflare", "infrastructure"],
     dagrun_timeout=timedelta(seconds=60),
+    on_failure_callback=SmtpNotifier(to="jack@jstockley.com", smtp_conn_id="SMTP"),
 )
 def cloudflare_ddns():
     @task()

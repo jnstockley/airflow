@@ -2,9 +2,8 @@ import logging
 from datetime import timedelta, datetime
 
 import requests
-from airflow.decorators import task
-from airflow.models import Variable, Param
-from airflow.models.dag import dag
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
+from airflow.sdk import Variable, Param, dag, task
 
 logger = logging.getLogger(__name__)
 
@@ -14,15 +13,13 @@ default_args = {
     "owner": "jackstockley",
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
-    "email": ["jack@jstockley.com"],
-    "email_on_failure": env == "prod",
 }
 
 
 @dag(
     dag_id="DNS-Requests",
     description="Checks if DNS requests have been made within a certain period of time",
-    schedule="@once" if env == "dev" else "0 * * * *",
+    schedule="0 * * * *" if not env == "dev" else None,
     start_date=datetime(2024, 3, 4),
     default_args=default_args,
     catchup=False,
@@ -33,6 +30,7 @@ default_args = {
         ),
     },
     dagrun_timeout=timedelta(seconds=60),
+    on_failure_callback=SmtpNotifier(to="jack@jstockley.com", smtp_conn_id="SMTP"),
 )
 def dns_requests():
     @task()
