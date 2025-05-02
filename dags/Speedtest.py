@@ -2,9 +2,8 @@ import logging
 from datetime import timedelta, datetime
 
 import requests
-from airflow.decorators import task
-from airflow.models import Variable
-from airflow.models.dag import dag
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
+from airflow.sdk import Variable, dag, task
 
 logger = logging.getLogger(__name__)
 
@@ -13,21 +12,23 @@ env = Variable.get("env")
 default_args = {
     "owner": "jackstockley",
     "retries": 2,
-    "retry_delay": timedelta(minutes=5),
-    "email": ["jack@jstockley.com"],
-    "email_on_failure": env == "prod",
+    "retry_delay": timedelta(minutes=5)
 }
 
 
 @dag(
     dag_id="Speedtest",
     description="Checks if backups have been made within a certain period of time",
-    schedule="@once" if env == "dev" else "0 */6 * * *",
+    schedule="0 */6 * * *" if not env == "dev" else None,
     start_date=datetime(2024, 12, 16),
     default_args=default_args,
     catchup=False,
     tags=["speedtest", "infrastructure"],
     dagrun_timeout=timedelta(seconds=60),
+    on_failure_callback=SmtpNotifier(
+        to="jack@jstockley.com",
+        smtp_conn_id="SMTP"
+    )
 )
 def speedtest():
     iowa_host = Variable.get("SPEEDTEST_IOWA_HOST")

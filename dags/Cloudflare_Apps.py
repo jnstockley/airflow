@@ -2,9 +2,8 @@ import logging
 from datetime import timedelta, datetime
 
 import requests
-from airflow.decorators import task
-from airflow.models import Variable, TaskInstance
-from airflow.models.dag import dag
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
+from airflow.sdk import Variable, dag, task
 
 from plugins.cloudflare.cloudflare_api import (
     get_dns_zone_id,
@@ -25,8 +24,6 @@ default_args = {
     "owner": "jackstockley",
     "retries": 2,
     "retry_delay": timedelta(minutes=1),
-    "email": ["jack@jstockley.com"],
-    "email_on_failure": env == "prod",
 }
 
 CLOUDFLARE_API = "https://api.cloudflare.com/client/v4"
@@ -35,16 +32,20 @@ CLOUDFLARE_API = "https://api.cloudflare.com/client/v4"
 @dag(
     dag_id="Cloudflare-Apps",
     description="Update Cloudflare App allowed IP addresses",
-    schedule="@once" if env == "dev" else "*/5 * * * *",
+    schedule="*/5 * * * *" if not env == "dev" else None,
     start_date=datetime(2024, 3, 4),
     default_args=default_args,
     catchup=False,
     tags=["cloudflare", "infrastructure"],
     dagrun_timeout=timedelta(seconds=60),
+    on_failure_callback=SmtpNotifier(
+        to="jack@jstockley.com",
+        smtp_conn_id="SMTP"
+    )
 )
 def cloudflare_apps():
-    @task()
-    def get_all_ips(ti: TaskInstance):
+    @task
+    def get_all_ips(ti=None):
         api_key = Variable.get("API_KEY")
 
         logger.info("Getting IPs from API")
@@ -65,8 +66,8 @@ def cloudflare_apps():
 
         return ips
 
-    @task()
-    def dns_zone_id(ti: TaskInstance):
+    @task
+    def dns_zone_id(ti=None):
         dns_zone_name = Variable.get("CLOUDFLARE_ZONE_NAME")
         cloudflare_api_key = Variable.get("CLOUDFLARE_API_KEY")
         logger.info("Getting DNS zone ID")
@@ -74,7 +75,7 @@ def cloudflare_apps():
         dns_zone_id = get_dns_zone_id(dns_zone_name, cloudflare_api_key)
         ti.xcom_push(key="dns_zone_id", value=dns_zone_id)
 
-    @task()
+    @task
     def update_cloudflare_dns_record(ip: dict):
         dns_zone_name = Variable.get("CLOUDFLARE_ZONE_NAME")
         cloudflare_api_key = Variable.get("CLOUDFLARE_API_KEY")
@@ -113,7 +114,7 @@ def cloudflare_apps():
         main()
 
     @task()
-    def update_cloudflare_apps(app_name: str, ti: TaskInstance):
+    def update_cloudflare_apps(app_name: str, ti=None):
         ips_dict: dict = ti.xcom_pull(key="ips_dict")
         dns_zone_id = ti.xcom_pull(key="dns_zone_id")
         cloudflare_api_key = Variable.get("CLOUDFLARE_API_KEY")
@@ -134,11 +135,11 @@ def cloudflare_apps():
     ips = get_all_ips()
     cloudflare_dns_zone_id = dns_zone_id()
     update_dns_tasks = update_cloudflare_dns_record.expand(ip=ips)
-    update_app_tasks = update_cloudflare_apps.expand(app_name=apps)
+    #update_app_tasks = update_cloudflare_apps.expand(app_name=apps)
 
     # Set dependencies
     ips >> update_dns_tasks
-    [ips, cloudflare_dns_zone_id] >> update_app_tasks
+    [ips, cloudflare_dns_zone_id] #>> update_app_tasks
 
 
 cloudflare_apps()

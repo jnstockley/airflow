@@ -3,10 +3,9 @@ import os
 import shutil
 
 import math
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
 
-from airflow.decorators import task
-from airflow.models import Variable
-from airflow.models.dag import dag
+from airflow.sdk import Variable, dag, task
 from datetime import datetime, timedelta
 
 env = Variable.get("ENV")
@@ -17,9 +16,7 @@ logger = logging.getLogger(__name__)
 default_args = {
     "owner": "jackstockley",
     "retries": 0,
-    "retry_delay": timedelta(minutes=5),
-    "email": ["jack@jstockley.com"],
-    "email_on_failure": env == "prod",
+    "retry_delay": timedelta(minutes=5)
 }
 
 
@@ -27,11 +24,15 @@ default_args = {
     dag_id="Airflow-Cleanup",
     description="Cleanup logs and data folders",
     start_date=datetime(2024, 9, 2),
-    schedule="@once" if env == "dev" else "@daily",
+    schedule="@daily" if not env == "dev" else None,
     default_args=default_args,
     catchup=False,
     tags=["maintenance"],
     dagrun_timeout=timedelta(seconds=60),
+    on_failure_callback=SmtpNotifier(
+        to="jack@jstockley.com",
+        smtp_conn_id="SMTP"
+    )
 )
 def cleanup():
     @task()
@@ -87,6 +88,8 @@ def cleanup():
     cleanup_data()
     if "airflow" not in host:
         check_disk_usage()
+
+
 
 
 cleanup()

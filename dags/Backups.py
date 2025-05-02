@@ -2,9 +2,8 @@ import logging
 from datetime import timedelta, datetime
 
 import requests
-from airflow.decorators import task
-from airflow.models import Variable, Param
-from airflow.models.dag import dag
+from airflow.providers.smtp.notifications.smtp import SmtpNotifier
+from airflow.sdk import Variable, Param, dag, task
 
 logger = logging.getLogger(__name__)
 
@@ -14,15 +13,13 @@ default_args = {
     "owner": "jackstockley",
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
-    "email": ["jack@jstockley.com"],
-    "email_on_failure": env == "prod",
 }
 
 
 @dag(
     dag_id="Backups",
     description="Checks if backups have been made within a certain period of time",
-    schedule="@once" if env == "dev" else "0 * * * *",
+    schedule="0 * * * *" if not env == "dev" else None,
     start_date=datetime(2024, 12, 16),
     default_args=default_args,
     catchup=False,
@@ -33,13 +30,17 @@ default_args = {
         ),
     },
     dagrun_timeout=timedelta(seconds=60),
+    on_failure_callback=SmtpNotifier(
+        to="jack@jstockley.com",
+        smtp_conn_id="SMTP"
+    )
 )
 def backup():
     iowa_home_host = Variable.get("BACKUP_IOWA_HOME_HOST")
     iowa_home_api_key = Variable.get("BACKUP_IOWA_HOME_API_KEY")
 
-    chicago_home_host = Variable.get("BACKUP_CHICAGO_HOME_HOST")
-    chicago_home_api_key = Variable.get("BACKUP_CHICAGO_HOME_API_KEY")
+    #chicago_home_host = Variable.get("BACKUP_CHICAGO_HOME_HOST")
+    #chicago_home_api_key = Variable.get("BACKUP_CHICAGO_HOME_API_KEY")
 
     backup_server_host = Variable.get("BACKUP_BACKUP_SERVER_HOST")
     backup_server_api_key = Variable.get("BACKUP_BACKUP_SERVER_API_KEY")
@@ -50,7 +51,7 @@ def backup():
     racknerd_host = Variable.get("BACKUP_RACKNERD_HOST")
     racknerd_api_key = Variable.get("BACKUP_RACKNERD_API_KEY")
 
-    @task()
+    @task
     def paused():
         def heath_check(host: str, api_key: str):
             url = f"{host}/rest/noauth/health"
@@ -101,9 +102,9 @@ def backup():
             heath_check(iowa_home_host, iowa_home_api_key)
             check_paused(iowa_home_host, iowa_home_api_key)
 
-            logger.info("Checking Chicago Home Paused Status")
-            heath_check(chicago_home_host, chicago_home_api_key)
-            check_paused(chicago_home_host, chicago_home_api_key)
+            #logger.info("Checking Chicago Home Paused Status")
+            #heath_check(chicago_home_host, chicago_home_api_key)
+            #check_paused(chicago_home_host, chicago_home_api_key)
 
             logger.info("Checking Backup Server Paused Status")
             heath_check(backup_server_host, backup_server_api_key)
@@ -119,7 +120,7 @@ def backup():
 
         main()
 
-    @task()
+    @task
     def status(params: dict):
         outdated_interval: int = params["outdated_interval"]
 
@@ -157,8 +158,8 @@ def backup():
             logger.info("Checking Iowa Home Outdated Status")
             check_status(iowa_home_host, iowa_home_api_key)
 
-            logger.info("Checking Chicago Home Outdated Status")
-            check_status(chicago_home_host, chicago_home_api_key)
+            #logger.info("Checking Chicago Home Outdated Status")
+            #check_status(chicago_home_host, chicago_home_api_key)
 
             logger.info("Checking Backup Server Outdated Status")
             check_status(backup_server_host, backup_server_api_key)
@@ -170,10 +171,6 @@ def backup():
             check_status(racknerd_host, racknerd_api_key)
 
         main()
-
-    @task()
-    def errors():
-        pass
 
     paused() >> status()
 
