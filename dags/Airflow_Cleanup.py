@@ -9,7 +9,7 @@ from airflow.sdk import Variable, dag, task
 from datetime import datetime, timedelta
 
 env = Variable.get("ENV")
-host = os.environ["AIRFLOW__WEBSERVER__BASE_URL"]
+host = os.environ["AIRFLOW__API__BASE_URL"]
 
 logger = logging.getLogger(__name__)
 
