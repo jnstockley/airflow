@@ -2,11 +2,6 @@ FROM apache/airflow:slim-3.0.1 AS build
 
 USER root
 
-RUN apt-get update -yqq &&  \
-    ACCEPT_EULA=Y apt-get upgrade -yqq && \
-    apt-get install iputils-ping -yqq --no-install-recommends && \
-    apt-get clean
-
 USER airflow
 
 COPY requirements.txt .

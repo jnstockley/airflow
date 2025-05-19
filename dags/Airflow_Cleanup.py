@@ -33,24 +33,6 @@ default_args = {
 )
 def cleanup():
     @task()
-    def cleanup_logs():
-        file_list = []
-        for root, dirs, files in os.walk("./logs"):
-            for file in files:
-                file_path = os.path.join(root, file)
-                logger.info(f"Found file: {file_path}")
-                if (
-                    os.path.getmtime(file_path)
-                    < (datetime.now() - timedelta(days=1)).timestamp()
-                ):
-                    file_list.append(os.path.join(root, file))
-
-        for file in file_list:
-            if env != "dev":
-                os.remove(file)
-            logger.info(f"Removed file: {file} since last modified is over a month ago")
-
-    @task()
     def cleanup_data():
         file_list = []
         for root, dirs, files in os.walk("./data"):
@@ -81,7 +63,6 @@ def cleanup():
         if used_percentage > 75:
             raise OSError(f"Used disk space is over 75%: {used_percentage}%")
 
-    cleanup_logs()
     cleanup_data()
     if "airflow" not in host:
         check_disk_usage()

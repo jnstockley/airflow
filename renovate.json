@@ -9,10 +9,6 @@
   "assignees": [
     "jnstockley"
   ],
-  "ignoreDeps": [
-    "aiohttp",
-    "psycopg2-binary"
-  ],
   "pip_requirements": {
     "fileMatch": ["(^|/)requirements(_.*)?.txt$"]
   },
