@@ -64,7 +64,7 @@ def cleanup():
             raise OSError(f"Used disk space is over 75%: {used_percentage}%")
 
     cleanup_data()
-    if "airflow" not in host:
+    if "airflow.jstockley" not in host:
         check_disk_usage()
 
 
