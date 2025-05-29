@@ -10,7 +10,9 @@
     "jnstockley"
   ],
   "pip_requirements": {
-    "fileMatch": ["(^|/)requirements(_.*)?.txt$"]
+    "managerFilePatterns": [
+      "/(^|/)requirements(_.*)?.txt$/"
+    ]
   },
   "packageRules": [
     {
