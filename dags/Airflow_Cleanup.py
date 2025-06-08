@@ -3,10 +3,12 @@ import os
 import shutil
 
 import math
-from airflow.providers.smtp.notifications.smtp import SmtpNotifier
+from airflow.providers.apprise.notifications.apprise import AppriseNotifier
 
 from airflow.sdk import Variable, dag, task
 from datetime import datetime, timedelta
+
+from apprise import NotifyType
 
 env = Variable.get("ENV")
 host = os.environ["AIRFLOW__API__BASE_URL"]
@@ -29,7 +31,11 @@ default_args = {
     catchup=False,
     tags=["maintenance"],
     dagrun_timeout=timedelta(seconds=60),
-    on_failure_callback=SmtpNotifier(to="jack@jstockley.com", smtp_conn_id="SMTP"),
+    on_failure_callback=AppriseNotifier(
+        body="The dag {{ dag.dag_id }} failed",
+        notify_type=NotifyType.FAILURE,
+        apprise_conn_id="nextcloud",
+    ),
 )
 def cleanup():
     @task()
