@@ -4,5 +4,5 @@ psycopg2-binary==2.9.10
 aiohttp==3.12.11
 redis==6.2.0
 asyncpg==0.30.0
-apache-airflow-providers-fab==2.0.2
+apache-airflow-providers-fab==2.2.0
 apache-airflow-providers-apprise==2.1.0
