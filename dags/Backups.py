@@ -2,8 +2,9 @@ import logging
 from datetime import timedelta, datetime
 
 import requests
-from airflow.providers.smtp.notifications.smtp import SmtpNotifier
+from airflow.providers.apprise.notifications.apprise import AppriseNotifier
 from airflow.sdk import Variable, Param, dag, task
+from apprise import NotifyType
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,11 @@ default_args = {
         ),
     },
     dagrun_timeout=timedelta(seconds=60),
-    on_failure_callback=SmtpNotifier(to="jack@jstockley.com", smtp_conn_id="SMTP"),
+    on_failure_callback=AppriseNotifier(
+        body="The dag {{ dag.dag_id }} failed",
+        notify_type=NotifyType.FAILURE,
+        apprise_conn_id="nextcloud",
+    ),
 )
 def backup():
     iowa_home_host = Variable.get("BACKUP_IOWA_HOME_HOST")

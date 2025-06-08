@@ -2,8 +2,9 @@ import logging
 from datetime import timedelta, datetime
 
 import requests
-from airflow.providers.smtp.notifications.smtp import SmtpNotifier
+from airflow.providers.apprise.notifications.apprise import AppriseNotifier
 from airflow.sdk import Variable, dag, task
+from apprise import NotifyType
 
 from plugins.cloudflare.cloudflare_api import (
     get_dns_zone_id,
@@ -58,7 +59,11 @@ def __get_all_ips():
     catchup=False,
     tags=["cloudflare", "infrastructure"],
     dagrun_timeout=timedelta(seconds=60),
-    on_failure_callback=SmtpNotifier(to="jack@jstockley.com", smtp_conn_id="SMTP"),
+    on_failure_callback=AppriseNotifier(
+        body="The dag {{ dag.dag_id }} failed",
+        notify_type=NotifyType.FAILURE,
+        apprise_conn_id="nextcloud",
+    ),
 )
 def cloudflare_apps():
     @task
