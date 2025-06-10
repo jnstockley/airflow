@@ -13,7 +13,7 @@ env = Variable.get("env")
 
 default_args = {
     "owner": "jackstockley",
-    "retries": 2,
+    "retries": 2 if env == "prod" else 0,
     "retry_delay": timedelta(minutes=1),
 }
 
@@ -31,10 +31,12 @@ default_args = {
         body="The dag {{ dag.dag_id }} failed",
         notify_type=NotifyType.FAILURE,
         apprise_conn_id="nextcloud",
-    ),
+    )
+    if env == "prod"
+    else None,
 )
 def cloudflare_ddns():
-    @task()
+    @task
     def update_ip_address():
         endpoint = Variable.get("API_ENDPOINT")
         identifier = Variable.get("DDNS_IDENTIFIER")

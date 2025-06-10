@@ -23,7 +23,7 @@ env = Variable.get("env")
 
 default_args = {
     "owner": "jackstockley",
-    "retries": 2,
+    "retries": 2 if env == "prod" else 0,
     "retry_delay": timedelta(minutes=1),
 }
 
@@ -63,7 +63,9 @@ def __get_all_ips():
         body="The dag {{ dag.dag_id }} failed",
         notify_type=NotifyType.FAILURE,
         apprise_conn_id="nextcloud",
-    ),
+    )
+    if env == "prod"
+    else None,
 )
 def cloudflare_apps():
     @task
@@ -108,7 +110,7 @@ def cloudflare_apps():
 
         main()
 
-    @task()
+    @task
     def update_cloudflare_apps(app_name: str):
         ips_dict = __get_all_ips()
         dns_zone_name = Variable.get("CLOUDFLARE_ZONE_NAME")
