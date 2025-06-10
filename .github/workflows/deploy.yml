@@ -86,4 +86,3 @@ jobs:
           push: true
           tags: jnstockley/airflow:latest,jnstockley/airflow:${{ env.DATE }}
           labels: ${{ steps.meta.outputs.labels }}
-
