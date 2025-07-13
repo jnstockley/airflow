@@ -35,10 +35,12 @@ default_args = {
         body="The dag {{ dag.dag_id }} failed",
         notify_type=NotifyType.FAILURE,
         apprise_conn_id="nextcloud",
-    ),
+    )
+    if env == "prod"
+    else None,
 )
 def cleanup():
-    @task()
+    @task
     def cleanup_data():
         file_list = []
         for root, dirs, files in os.walk("./data"):
@@ -56,7 +58,7 @@ def cleanup():
                 os.remove(file)
             logger.info(f"Removed file: {file} since last modified is over a week ago")
 
-    @task()
+    @task
     def check_disk_usage():
         total, used, free = shutil.disk_usage("./data")
 

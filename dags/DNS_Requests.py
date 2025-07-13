@@ -12,7 +12,7 @@ env = Variable.get("env")
 
 default_args = {
     "owner": "jackstockley",
-    "retries": 2,
+    "retries": 2 if env == "prod" else 0,
     "retry_delay": timedelta(minutes=5),
 }
 
@@ -35,10 +35,12 @@ default_args = {
         body="The dag {{ dag.dag_id }} failed",
         notify_type=NotifyType.FAILURE,
         apprise_conn_id="nextcloud",
-    ),
+    )
+    if env == "prod"
+    else None,
 )
 def dns_requests():
-    @task()
+    @task
     def check_requests(client: str, params: dict):
         dns_host = Variable.get("DNS_HOST")
         api_key = Variable.get("DNS_API_KEY")

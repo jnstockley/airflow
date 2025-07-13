@@ -12,7 +12,7 @@ env = Variable.get("env")
 
 default_args = {
     "owner": "jackstockley",
-    "retries": 2,
+    "retries": 2 if env == "prod" else 0,
     "retry_delay": timedelta(minutes=5),
 }
 
@@ -30,78 +30,73 @@ default_args = {
         body="The dag {{ dag.dag_id }} failed",
         notify_type=NotifyType.FAILURE,
         apprise_conn_id="nextcloud",
-    ),
+    )
+    if env == "prod"
+    else None,
 )
 def speedtest():
-    iowa_host = Variable.get("SPEEDTEST_IOWA_HOST")
-    iowa_api_key = Variable.get("SPEEDTEST_IOWA_API_KEY")
-    iowa_upload_limit = float(Variable.get("SPEEDTEST_IOWA_UPLOAD_LIMIT"))
-    iowa_download_limit = float(Variable.get("SPEEDTEST_IOWA_DOWNLOAD_LIMIT"))
+    @task
+    def get_devices():
+        devices: list[str] = Variable.get("SPEEDTEST_DEVICES").split("|")
 
-    chicago_host = Variable.get("SPEEDTEST_CHICAGO_HOST")
-    chicago_api_key = Variable.get("SPEEDTEST_CHICAGO_API_KEY")
-    chicago_upload_limit = float(Variable.get("SPEEDTEST_CHICAGO_UPLOAD_LIMIT"))
-    chicago_download_limit = float(Variable.get("SPEEDTEST_CHICAGO_DOWNLOAD_LIMIT"))
+        logger.info("Found devices: %s", devices)
+        if len(devices) == 0:
+            raise ValueError("No devices found in SPEEDTEST_DEVICES variable")
 
-    @task()
-    def speed():
-        def speed_check(
-            host: str, api_key: str, upload_limit: float, download_limit: float
-        ):
-            url = f"{host}/api/states"
-            headers = {"Authorization": f"Bearer {api_key}"}
+        return devices
 
-            response = requests.get(url, headers=headers)
+    @task
+    def speed_test(device: str):
+        host = Variable.get(f"SPEEDTEST_{device}_HOST")
+        api_key = Variable.get(f"SPEEDTEST_{device}_API_KEY")
+        upload_limit: float = float(
+            Variable.get(f"SPEEDTEST_{device}_UPLOAD_LIMIT", default=0.0)
+        )
+        download_limit: float = float(
+            Variable.get(f"SPEEDTEST_{device}_DOWNLOAD_LIMIT", default=0.0)
+        )
 
-            if response.status_code != 200:
-                logger.error(
-                    f"{host} -> Response code: {response.status_code}, when it should be 200"
-                )
-                raise ConnectionError(f"Unable to connect to host: {host}")
+        url = f"{host}/api/states"
+        headers = {"Authorization": f"Bearer {api_key}"}
 
-            download: float = 0.0
-            upload: float = 0.0
+        response = requests.get(url, headers=headers)
 
-            for entity in response.json():
-                if entity["entity_id"] == "sensor.speedtest_upload":
-                    try:
-                        upload = float(entity["state"])
-                    except Exception as e:
-                        logger.error(
-                            f"{host} -> Unable to convert upload speed to float: {entity['state']}"
-                        )
-                        logger.error(e)
-                if entity["entity_id"] == "sensor.speedtest_download":
-                    try:
-                        download = float(entity["state"])
-                    except Exception as e:
-                        logger.error(
-                            f"{host} -> Unable to convert download speed to float: {entity['state']}"
-                        )
-                        logger.error(e)
-
-            assert upload >= upload_limit, (
-                f"{host} -> Upload speed below limit: {upload} for location: {host}"
+        if response.status_code != 200:
+            logger.error(
+                f"{host} -> Response code: {response.status_code}, when it should be 200"
             )
-            assert download >= download_limit, (
-                f"{host} -> Download speed below limit: {download} for location: {host}"
-            )
+            raise ConnectionError(f"Unable to connect to host: {host}")
 
-        def main():
-            logger.info("Checking Iowa Home Speedtest")
-            speed_check(iowa_host, iowa_api_key, iowa_upload_limit, iowa_download_limit)
+        download: float = 0.0
+        upload: float = 0.0
 
-            logger.info("Checking Chicago Home Speedtest")
-            speed_check(
-                chicago_host,
-                chicago_api_key,
-                chicago_upload_limit,
-                chicago_download_limit,
-            )
+        for entity in response.json():
+            if entity["entity_id"] == "sensor.speedtest_upload":
+                try:
+                    upload = float(entity["state"])
+                except Exception as e:
+                    logger.error(
+                        f"{host} -> Unable to convert upload speed to float: {entity['state']}"
+                    )
+                    logger.error(e)
+            if entity["entity_id"] == "sensor.speedtest_download":
+                try:
+                    download = float(entity["state"])
+                except Exception as e:
+                    logger.error(
+                        f"{host} -> Unable to convert download speed to float: {entity['state']}"
+                    )
+                    logger.error(e)
 
-        main()
+        assert upload >= upload_limit, (
+            f"{host} -> Upload speed below limit: {upload} for location: {host}"
+        )
+        assert download >= download_limit, (
+            f"{host} -> Download speed below limit: {download} for location: {host}"
+        )
 
-    speed()
+    devices = get_devices()
+    speed_test.expand(device=devices)
 
 
 speedtest()
