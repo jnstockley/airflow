@@ -1,11 +1,11 @@
-FROM apache/airflow:slim-3.0.4 AS build
+FROM apache/airflow:slim-3.0.5 AS build
 
 COPY requirements.txt .
 
 RUN pip3 install --upgrade pip && \
     pip3 install -r requirements.txt
 
-FROM apache/airflow:slim-3.0.4
+FROM apache/airflow:slim-3.0.5
 
 COPY --from=build home/airflow/.local/ /home/airflow/.local/
 
