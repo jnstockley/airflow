@@ -41,6 +41,60 @@ default_args = {
 )
 def dns_requests():
     @task
+    def check_protection():
+        dns_host = Variable.get("DNS_HOST")
+        api_key = Variable.get("DNS_API_KEY")
+
+        headers = {"Authorization": f"Basic {api_key}"}
+        url = f"{dns_host}status"
+
+        response = requests.get(url, headers=headers)
+
+        if response.status_code != 200:
+            logger.error(
+                f"Response code: {response.status_code}, when it should be 200 ->"
+                f" {response.json()}"
+            )
+            raise ConnectionError(
+                f"Response code: {response.status_code}, when it should be 200 -> "
+                f"{response.json()}"
+            )
+
+        if (
+            "protection_enabled" not in response.json()
+            or "protection_disabled_duration" not in response.json()
+            or "running" not in response.json()
+        ):
+            logger.error(
+                f"Invalid response message, missing `protection_enabled` or "
+                f"`protection_disabled_duration` or `running`: {response.json()}"
+            )
+            raise ValueError(
+                f"Invalid response message, missing `protection_enabled` or "
+                f"`protection_disabled_duration` or `running`: {response.json()}"
+            )
+
+        running: bool = response.json()["running"]
+        protection_enabled: bool = response.json()["protection_enabled"]
+        protection_disabled_duration: int = response.json()[
+            "protection_disabled_duration"
+        ]
+        logger.info(
+            f"Running: {running}, Protection Enabled: {protection_enabled}, Protection Disabled Duration: {protection_disabled_duration}"
+        )
+        if not running:
+            logger.error("DNS service is not running")
+            raise ValueError("DNS service is not running")
+
+        if not protection_enabled and protection_disabled_duration == 0:
+            logger.error(
+                "Protection is disabled and is not being disabled automatically"
+            )
+            raise ValueError(
+                "Protection is disabled and is not being disabled automatically"
+            )
+
+    @task
     def check_requests(client: str, params: dict):
         dns_host = Variable.get("DNS_HOST")
         api_key = Variable.get("DNS_API_KEY")
@@ -82,7 +136,7 @@ def dns_requests():
             raise ValueError(f"Last request received for {client}: {last_request}")
 
     clients: list[str] = Variable.get("DNS_CLIENTS").split("|")
-    check_requests.expand(client=clients)
+    check_protection() >> check_requests.expand(client=clients)
 
 
 dns_requests()
