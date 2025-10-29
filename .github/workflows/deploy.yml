@@ -17,6 +17,7 @@ jobs:
   lint:
     name: Run linters
     runs-on: ubuntu-latest
+    environment: docker
 
     steps:
       - name: Check out Git repository
