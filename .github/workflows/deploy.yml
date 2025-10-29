@@ -17,7 +17,6 @@ jobs:
   lint:
     name: Run linters
     runs-on: ubuntu-latest
-    environment: docker
 
     steps:
       - name: Check out Git repository
@@ -38,6 +37,7 @@ jobs:
     needs: lint
     name: Push Docker image to multiple registries
     runs-on: ubuntu-latest
+    environment: docker
     permissions:
       packages: write
       contents: read
