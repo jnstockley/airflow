@@ -8,12 +8,10 @@ from apprise import NotifyType
 
 from plugins.cloudflare.cloudflare_api import (
     get_dns_zone_id,
-    get_zero_trust_app_ids,
-    get_app_policy_ids,
-    delete_app_policies,
-    create_app_policy,
     get_dns_record_id,
     update_dns_record,
+    get_app_policy_id,
+    update_app_policy_id,
 )
 
 
@@ -111,33 +109,23 @@ def cloudflare_apps():
         main()
 
     @task
-    def update_cloudflare_apps(app_name: str):
+    def update_cloudflare_policy():
         ips_dict = __get_all_ips()
-        dns_zone_name = Variable.get("CLOUDFLARE_ZONE_NAME")
         cloudflare_api_key = Variable.get("CLOUDFLARE_API_KEY")
-        logger.info("Getting DNS zone ID")
-        dns_zone_id = get_dns_zone_id(dns_zone_name, cloudflare_api_key)
+        account_id = Variable.get("CLOUDFLARE_ACCOUNT_ID")
         cloudflare_api_key = Variable.get("CLOUDFLARE_API_KEY")
 
         def main():
             ips = [item["ip_address"] for item in ips_dict if "ip_address" in item]
 
-            logger.info(f"{dns_zone_id}, {app_name}")
-
-            app_id = get_zero_trust_app_ids(dns_zone_id, app_name, cloudflare_api_key)
-            policy_ids = get_app_policy_ids(dns_zone_id, app_id, cloudflare_api_key)
-
-            delete_app_policies(dns_zone_id, app_id, policy_ids, cloudflare_api_key)
-            create_app_policy(dns_zone_id, app_id, ips, cloudflare_api_key)
+            policy_id = get_app_policy_id(
+                account_id, "Bypass Internal IPs", cloudflare_api_key
+            )
+            update_app_policy_id(account_id, policy_id, ips, cloudflare_api_key)
 
         main()
 
-    apps = Variable.get("CLOUDFLARE_APPS").split("|")
-
-    [
-        update_cloudflare_dns_record.expand(ip=get_all_ips()),
-        update_cloudflare_apps.expand(app_name=apps),
-    ]
+    update_cloudflare_dns_record.expand(ip=get_all_ips()) >> update_cloudflare_policy()
 
 
 cloudflare_apps()
