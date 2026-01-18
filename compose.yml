@@ -78,6 +78,13 @@ services:
     command: version
     <<: *airflow-common
 
+  airflow-python:
+    profiles:
+      - debug
+    user: "50000:0"
+    entrypoint: [ "/bin/bash", "-c" ]
+    <<: *airflow-common
+
   airflow-log-groomer:
     container_name: airflow-log-groomer
     environment:
@@ -127,7 +134,7 @@ services:
     image: postgres:latest
     container_name: airflow-postgres
     volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
+      - postgres-db-volume:/var/lib/postgresql/18/docker
     environment:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
