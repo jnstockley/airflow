@@ -6,4 +6,4 @@ redis==7.1.0
 asyncpg==0.31.0
 apache-airflow-providers-fab==3.1.2
 apache-airflow-providers-apprise==2.3.1
-SQLAlchemy==1.4.54 # TODO Workaround until `apache-airflow-providers-fab` gets fixed
+SQLAlchemy==2.0.46 # TODO Workaround until `apache-airflow-providers-fab` gets fixed
