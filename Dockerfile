@@ -1,13 +1,13 @@
-FROM apache/airflow:slim-3.1.7 AS build
+FROM dhi.io/airflow:3.1.7-dev AS build
 
 COPY requirements.txt .
 
 RUN pip3 install --upgrade pip && \
-    pip3 install -r requirements.txt
+    pip3 install --user -r requirements.txt
 
-FROM apache/airflow:slim-3.1.7
+FROM dhi.io/airflow:3.1.7
 
-COPY --from=build home/airflow/.local/ /home/airflow/.local/
+COPY --from=build /root/.local/ /home/airflow/.local/
 
 ENV PYTHONPATH "${PYTHONPATH}:/opt/airflow/plugins"
 
@@ -24,9 +24,5 @@ COPY config/webserver_config.py /opt/airflow
 COPY plugins /opt/airflow/plugins
 
 COPY dags /opt/airflow/dags
-
-USER root
-
-RUN chmod -R 770 /opt/airflow
 
 USER airflow
