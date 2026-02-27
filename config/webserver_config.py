@@ -4,8 +4,10 @@ from typing import Optional
 import jwt
 import logging
 
+from airflow.configuration import conf
+from airflow.providers.fab.auth_manager.fab_auth_manager import FabAuthManager
 from airflow.sdk import Variable
-from flask import redirect, session
+from flask import redirect, session, make_response, request
 from flask_appbuilder import expose
 from flask_appbuilder.security.manager import AUTH_OAUTH
 from airflow.providers.fab.auth_manager.security_manager.override import (
@@ -21,6 +23,8 @@ AUTH_TYPE = AUTH_OAUTH
 AUTH_USER_REGISTRATION = True
 AUTH_ROLES_SYNC_AT_LOGIN = True
 CSRF_ENABLED = True
+
+BASE_URL = conf.get("webserver", "BASE_URL")
 
 AUTHENTIK_APP_NAME = os.environ["AUTHENTIK_APP_NANE"]
 
@@ -66,13 +70,21 @@ class AuthentikAuthRemoteUserView(AuthOAuthView):
     def login(self, provider: Optional[str] = "authentik", register=None):
         return super().login(provider)
 
-    @expose("/logout/", methods=["GET", "POST"])
+    @expose('/start-logout')
     def logout(self):
+        url = f"{Variable.get('ISSUER')}/application/o/{AUTHENTIK_APP_NAME}/end-session/"
+        resp = make_response(redirect(url))
         logout_user()
         session.clear()
-        return redirect(
-            f"{Variable.get('ISSUER')}/application/o/{AUTHENTIK_APP_NAME}/end-session/"
-        )
+        for cookie in request.cookies:
+            resp.set_cookie(cookie, '', expires=0)
+        return resp
+
+class AuthentikAuthManager(FabAuthManager):
+
+    def get_url_logout(self) -> str | None:
+        log.info("Authentik logout initiated")
+        return f"{BASE_URL}auth/start-logout"
 
 
 class AuthentikSecurityManager(FabAirflowSecurityManagerOverride):
