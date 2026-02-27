@@ -4,7 +4,7 @@ from typing import Optional
 import jwt
 import logging
 
-from airflow.models import Variable
+from airflow.sdk import Variable
 from flask import redirect, session
 from flask_appbuilder import expose
 from flask_appbuilder.security.manager import AUTH_OAUTH
@@ -20,6 +20,7 @@ log = logging.getLogger(__name__)
 AUTH_TYPE = AUTH_OAUTH
 AUTH_USER_REGISTRATION = True
 AUTH_ROLES_SYNC_AT_LOGIN = True
+CSRF_ENABLED = True
 
 AUTHENTIK_APP_NAME = os.environ["AUTHENTIK_APP_NANE"]
 

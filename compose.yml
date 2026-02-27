@@ -5,16 +5,12 @@ x-airflow-common: &airflow-common
     - .env
   environment: &airflow-common-env
     AIRFLOW__API__BASE_URL: http://localhost:8080/
-    TZ: America/Chicago
-    AIRFLOW__CORE__DEFAULT_TIMEZONE: America/Chicago
-    AIRFLOW__WEBSERVER__DEFAULT_UI_TIMEZONE: America/Chicago
-    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
     AIRFLOW_VAR_ENV: dev
     REDIS_URI: redis://redis:6379/0
     AUTHENTIK_APP_NANE: airflow-dev
-    AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
     AIRFLOW__LOG_RETENTION_DAYS: 7
-    AIRFLOW__FAB__EXPOSE_HOSTNAME: true
+    AIRFLOW__FAB__COOKIE_SECURE: False # Only needed on dev, non HTTPS
+    AIRFLOW__FAB__COOKIE_SAMESITE: Lax # Only needed on dev, non HTTPS
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
