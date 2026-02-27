@@ -31,7 +31,8 @@ ENV PYTHONPATH="${PYTHONPATH}:/opt/airflow/plugins" \
     AIRFLOW__CORE__DEFAULT_TASK_EXECUTION_TIMEOUT=3600 \
     AIRFLOW__FAB__COOKIE_SECURE=True \
     AIRFLOW__FAB__COOKIE_SAMESITE=Strict \
-    TZ=America/Chicago
+    TZ=America/Chicago \
+    AIRFLOW__CORE__AUTH_MANAGER=webserver_config.AuthentikAuthManager
 
 COPY config/webserver_config.py /opt/airflow
 
