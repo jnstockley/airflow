@@ -16,6 +16,13 @@ FROM apache/airflow:slim-3.1.7
 
 COPY --from=build home/airflow/.local/ /home/airflow/.local/
 
+USER root
+
+RUN sudo apt-get update -y && \
+    sudo apt-get install --no-install-recommends -y jq
+
+USER airflow
+
 ENV PYTHONPATH="${PYTHONPATH}:/opt/airflow/plugins" \
     PATH="/home/airflow/.local/bin:${PATH}" \
     AIRFLOW__CORE__EXECUTOR=LocalExecutor \
@@ -39,6 +46,8 @@ COPY config/webserver_config.py /opt/airflow
 COPY plugins /opt/airflow/plugins
 
 COPY dags /opt/airflow/dags
+
+COPY config/healthcheck.sh /opt/airflow
 
 USER root
 
