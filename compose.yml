@@ -36,7 +36,7 @@ services:
     command: api-server
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
+      test: ["CMD", "/opt/airflow/healthcheck.sh"]
       interval: 30s
       timeout: 10s
       retries: 5
