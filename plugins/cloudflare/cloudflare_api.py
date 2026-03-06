@@ -131,7 +131,7 @@ def get_app_policy_id(account_id: str, policy_filter: str, api_key: str) -> str 
     if "result" in response.json():
         results = response.json()["result"]
         for policy in results:
-            if policy_filter.lower().strip() == policy["name"].lower().strip():
+            if policy_filter.lower() in policy["name"].lower():
                 return policy["id"]
 
     return None
