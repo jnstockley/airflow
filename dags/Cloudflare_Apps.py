@@ -98,13 +98,28 @@ def cloudflare_apps():
             )
             logger.info("Updating IPV4 DNS records")
             update_dns_record(
-                ip["ip_address"],
+                ip["ipv4_address"],
                 dns_zone_id,
                 ipv4_record_id,
                 cloudflare_dns_name,
                 cloudflare_api_key,
                 False,
             )
+
+            if ip['ipv4_address'] is not None:
+                logger.info("Getting IPV6 DNS record ID")
+                ipv6_record_id = get_dns_record_id(
+                    dns_zone_id, cloudflare_dns_name, cloudflare_api_key, True
+                )
+                logger.info("Updating IPV6 DNS records")
+                update_dns_record(
+                    ip["ipv6_address"],
+                    dns_zone_id,
+                    ipv6_record_id,
+                    cloudflare_dns_name,
+                    cloudflare_api_key,
+                    True,
+                )
 
         main()
 
