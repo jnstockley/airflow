@@ -106,7 +106,7 @@ def cloudflare_apps():
                 False,
             )
 
-            if ip['ipv4_address'] is not None:
+            if ip['ipv6_address'] is not None:
                 logger.info("Getting IPV6 DNS record ID")
                 ipv6_record_id = get_dns_record_id(
                     dns_zone_id, cloudflare_dns_name, cloudflare_api_key, True
