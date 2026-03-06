@@ -38,11 +38,28 @@ default_args = {
 def cloudflare_ddns():
     @task
     def update_ip_address():
+        def get_ipv6_address():
+            url = "https://ipv6.seeip.org/jsonip"
+            try:
+                response = requests.get(url, timeout=10)
+                response.raise_for_status()
+                return response.json().get("ip")
+            except requests.RequestException as e:
+                logger.error(f"Failed to get IPv6 address: {e}")
+                return None
+
         endpoint = Variable.get("API_ENDPOINT")
         identifier = Variable.get("DDNS_IDENTIFIER")
         api_key = Variable.get("API_KEY")
 
         params = {"identifier": identifier}
+
+        ipv6_address = get_ipv6_address()
+
+        if ipv6_address:
+            params["ipv6_address"] = ipv6_address
+            logger.info(f"Retrieved IPv6 address: {ipv6_address}")
+
         headers = {"x-api-key": api_key}
         response = requests.post(endpoint, params=params, headers=headers)
 
