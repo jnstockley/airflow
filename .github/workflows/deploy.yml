@@ -71,7 +71,7 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             jnstockley/airflow
@@ -81,7 +81,7 @@ jobs:
         run: echo "DATE=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
 
       - name: Build and push Docker images
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/amd64,linux/arm64
