@@ -131,7 +131,9 @@ def cloudflare_apps():
         cloudflare_api_key = Variable.get("CLOUDFLARE_API_KEY")
 
         def main():
-            ips = [item["ip_address"] for item in ips_dict if "ip_address" in item]
+            ips = [item["ipv4_address"] for item in ips_dict if "ipv4_address" in item]
+
+            ips.extend([item["ipv6_address"] for item in ips_dict if "ipv6_address" in item and item["ipv6_address"] is not None])
 
             policy_id = get_app_policy_id(
                 account_id, "Bypass Internal IPs", cloudflare_api_key
