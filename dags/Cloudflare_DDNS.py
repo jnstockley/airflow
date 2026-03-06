@@ -39,7 +39,7 @@ def cloudflare_ddns():
     @task
     def update_ip_address():
         def get_ipv6_address():
-            url = "https://ipv6.seeip.org/jsonip"
+            url = "https://api6.ipify.org?format=json"
             try:
                 response = requests.get(url, timeout=10)
                 response.raise_for_status()
