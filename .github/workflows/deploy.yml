@@ -41,6 +41,8 @@ jobs:
     permissions:
       packages: write
       contents: read
+      id-token: write  # Required for OIDC authentication
+
     steps:
       - name: Set Timezone
         uses: szenius/set-timezone@v2.0
@@ -56,11 +58,20 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      - name: Fetch secrets from Infisical
+        uses: Infisical/secrets-action@v1.0.16
+        with:
+          method: "oidc"
+          identity-id: ${{ vars.INFISICAL_IDENTITY_ID }}
+          domain: "https://secrets.jstockley.com"
+          project-slug: ${{ github.event.repository.name }}
+          env-slug: "prod"
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v4
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v4
