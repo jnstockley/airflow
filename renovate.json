@@ -26,27 +26,24 @@
     },
     {
       "customType": "regex",
-      "managerFilePatterns": [
-        "/^Dockerfile$/"
-      ],
-      "matchStrings": [
-        "# renovate: datasource=(?<datasource>[^\\s]+) depName=(?<depName>[^\\s]+) versioning=(?<versioning>[^\\s]+)\\s+ARG PYTHON_VERSION=(?<currentValue>[^\\s]+)\\s"
-      ]
-    },
-    {
-      "customType": "regex",
       "datasourceTemplate": "python-version",
       "depNameTemplate": "python",
       "versioningTemplate": "python",
       "managerFilePatterns": [
+        "/^Dockerfile$/",
         "/^\\.python-version$/"
       ],
       "matchStrings": [
+        "ARG PYTHON_VERSION=(?<currentValue>\\d+\\.\\d+)\\s",
         "^(?<currentValue>\\d+\\.\\d+)\\s*$"
       ]
     }
   ],
   "packageRules": [
+    {
+      "matchManagers": ["pyenv"],
+      "enabled": false
+    },
     {
       "matchDatasources": ["github-releases"],
       "matchPackageNames": [
