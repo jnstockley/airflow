@@ -3,7 +3,7 @@ ARG AIRFLOW_VERSION=3.3.1
 
 # Keep this value in sync with .python-version; Renovate updates both together.
 # renovate: datasource=python-version depName=python versioning=python
-ARG PYTHON_VERSION=3.13
+ARG PYTHON_VERSION=3.14
 
 FROM apache/airflow:slim-${AIRFLOW_VERSION}-python${PYTHON_VERSION} AS build
 
