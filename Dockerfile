@@ -1,5 +1,5 @@
 # renovate: datasource=github-releases depName=apache/airflow versioning=semver
-ARG AIRFLOW_VERSION=3.3.1
+ARG AIRFLOW_VERSION=3.3.0
 
 # Keep this value in sync with .python-version; Renovate updates both together.
 # renovate: datasource=python-version depName=python versioning=python
