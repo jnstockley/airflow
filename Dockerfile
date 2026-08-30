@@ -1,4 +1,11 @@
-FROM apache/airflow:slim-3.3.1 AS build
+# renovate: datasource=github-releases depName=apache/airflow versioning=semver
+ARG AIRFLOW_VERSION=3.3.1
+
+# Keep this value in sync with .python-version; Renovate updates both together.
+# renovate: datasource=python-version depName=python versioning=python
+ARG PYTHON_VERSION=3.13
+
+FROM apache/airflow:slim-${AIRFLOW_VERSION}-python${PYTHON_VERSION} AS build
 
 COPY requirements.txt .
 
@@ -12,7 +19,7 @@ USER airflow
 RUN pip3 install --upgrade pip && \
     pip3 install -r requirements.txt
 
-FROM apache/airflow:slim-3.3.1
+FROM apache/airflow:slim-${AIRFLOW_VERSION}-python${PYTHON_VERSION}
 
 COPY --from=build home/airflow/.local/ /home/airflow/.local/
 
