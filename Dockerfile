@@ -58,6 +58,4 @@ COPY config/healthcheck.sh /opt/airflow
 
 USER root
 
-RUN chmod -R 770 /opt/airflow
-
 USER airflow
