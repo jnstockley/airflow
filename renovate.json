@@ -17,18 +17,29 @@
   "customManagers": [
     {
       "customType": "regex",
+      "description": "Track the Airflow version against the tags actually published in the hardened dhi.io/airflow registry.",
       "managerFilePatterns": [
         "/^Dockerfile$/"
       ],
       "matchStrings": [
-        "# renovate: datasource=(?<datasource>[^\\s]+) depName=(?<depName>[^\\s]+) versioning=(?<versioning>[^\\s]+)\\s+ARG AIRFLOW_VERSION=(?<currentValue>[^\\s]+)\\s"
-      ]
+        "ARG AIRFLOW_VERSION=(?<currentValue>[^\\s]+)\\s"
+      ],
+      "datasourceTemplate": "docker",
+      "registryUrlTemplate": "https://dhi.io",
+      "packageNameTemplate": "airflow",
+      "depNameTemplate": "apache/airflow",
+      "versioningTemplate": "semver",
+      "extractVersionTemplate": "^(?<version>\\d+\\.\\d+\\.\\d+)-python"
     },
     {
       "customType": "regex",
-      "datasourceTemplate": "python-version",
+      "description": "Track the Python version against the tags actually published in the hardened dhi.io/airflow registry.",
+      "datasourceTemplate": "docker",
+      "registryUrlTemplate": "https://dhi.io",
+      "packageNameTemplate": "airflow",
       "depNameTemplate": "python",
       "versioningTemplate": "python",
+      "extractVersionTemplate": "-python(?<version>\\d+\\.\\d+)-",
       "managerFilePatterns": [
         "/^Dockerfile$/",
         "/^\\.python-version$/"
@@ -45,16 +56,20 @@
       "enabled": false
     },
     {
-      "matchDatasources": ["github-releases"],
-      "matchPackageNames": [
-        "apache/airflow"
-      ],
+      "description": "The built-in dockerfile/docker manager can't parse the composite FROM tag (multiple ARGs + suffix), so let the two custom managers above be the sole source of truth for this image.",
+      "matchManagers": ["dockerfile"],
+      "matchPackageNames": ["dhi.io/airflow", "airflow"],
+      "enabled": false
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchDepNames": ["apache/airflow"],
       "semanticCommitType": "minor",
       "semanticCommitScope": "airflow"
     },
     {
-      "matchDatasources": ["python-version"],
-      "matchPackageNames": ["python"],
+      "matchDatasources": ["docker"],
+      "matchDepNames": ["python"],
       "groupName": "Python",
       "groupSlug": "python",
       "semanticCommitType": "minor",
