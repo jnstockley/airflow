@@ -1,36 +1,27 @@
-# renovate: datasource=github-releases depName=apache/airflow versioning=semver
 ARG AIRFLOW_VERSION=3.3.1
 
-# Keep this value in sync with .python-version; Renovate updates both together.
-# renovate: datasource=python-version depName=python versioning=python
-ARG PYTHON_VERSION=3.14
+ARG PYTHON_VERSION=3.13
 
-FROM apache/airflow:slim-${AIRFLOW_VERSION}-python${PYTHON_VERSION} AS build
+FROM dhi.io/airflow:${AIRFLOW_VERSION}-python${PYTHON_VERSION}-debian-dev AS build
+
+USER root
+
+RUN apt-get update -y && \
+    apt-get install --no-install-recommends -y build-essential python3-dev python3-pip libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 
-USER root
-
-RUN sudo apt-get update -y && \
-    sudo apt-get install -y build-essential python3-dev libpq-dev
-
 USER airflow
 
-RUN pip3 install --upgrade pip && \
-    pip3 install -r requirements.txt
+RUN python3 -m pip install --no-cache-dir --break-system-packages --upgrade pip && \
+    python3 -m pip install --no-cache-dir --break-system-packages --user -r requirements.txt
 
-FROM apache/airflow:slim-${AIRFLOW_VERSION}-python${PYTHON_VERSION}
+FROM dhi.io/airflow:${AIRFLOW_VERSION}-python${PYTHON_VERSION}-compat
 
-COPY --from=build home/airflow/.local/ /home/airflow/.local/
+COPY --from=build --chown=airflow:root /home/airflow/.local/ /home/airflow/.local/
 
-USER root
-
-RUN sudo apt-get update -y && \
-    sudo apt-get install --no-install-recommends -y jq
-
-USER airflow
-
-ENV PYTHONPATH="${PYTHONPATH}:/opt/airflow/plugins" \
+ENV PYTHONPATH="${PYTHONPATH}:/opt/airflow" \
     PATH="/home/airflow/.local/bin:${PATH}" \
     AIRFLOW__CORE__EXECUTOR=LocalExecutor \
     AIRFLOW__CORE__AUTH_MANAGER=airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager \
@@ -54,8 +45,12 @@ COPY plugins /opt/airflow/plugins
 
 COPY dags /opt/airflow/dags
 
-COPY config/healthcheck.sh /opt/airflow
-
-USER root
+# Python-based healthcheck: the hardened final image has no shell/curl/jq,
+# so the check relies solely on the Python interpreter shipped with Airflow.
+COPY config/healthcheck.py /opt/airflow/healthcheck.py
 
 USER airflow
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=5 \
+    CMD ["python3", "/opt/airflow/healthcheck.py"]
+

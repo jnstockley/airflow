@@ -36,7 +36,7 @@ services:
     command: api-server
     restart: always
     healthcheck:
-      test: ["CMD", "/opt/airflow/healthcheck.sh"]
+      test: ["CMD", "python3", "/opt/airflow/healthcheck.py"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -53,11 +53,7 @@ services:
     restart: always
     healthcheck:
       test:
-        [
-          "CMD-SHELL",
-          'airflow jobs check --job-type DagProcessorJob --hostname
-            "$${HOSTNAME}"'
-        ]
+        ["CMD", "airflow", "jobs", "check", "--job-type", "DagProcessorJob", "--local"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -79,6 +75,8 @@ services:
       - debug
     user: "50000:0"
     entrypoint: [ "/bin/bash", "-c" ]
+    healthcheck:
+      disable: true
     <<: *airflow-common
 
   airflow-log-groomer:
@@ -88,6 +86,8 @@ services:
     command:
       - bash
       - /clean-logs
+    healthcheck:
+      disable: true
     <<: *airflow-common
 
   airflow-scheduler:
@@ -99,7 +99,14 @@ services:
     command: scheduler
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
+      # No curl in the hardened runtime image; use the stdlib instead.
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8974/health', timeout=5)"
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -116,11 +123,7 @@ services:
     restart: always
     healthcheck:
       test:
-        [
-          "CMD-SHELL",
-          'airflow jobs check --job-type TriggererJob --hostname
-            "$${HOSTNAME}"'
-        ]
+        ["CMD", "airflow", "jobs", "check", "--job-type", "TriggererJob", "--local"]
       interval: 30s
       timeout: 10s
       retries: 5
