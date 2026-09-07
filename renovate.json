@@ -33,13 +33,9 @@
     },
     {
       "customType": "regex",
-      "description": "Track the Python version against the tags actually published in the hardened dhi.io/airflow registry.",
-      "datasourceTemplate": "docker",
-      "registryUrlTemplate": "https://dhi.io",
-      "packageNameTemplate": "airflow",
+      "datasourceTemplate": "python-version",
       "depNameTemplate": "python",
       "versioningTemplate": "python",
-      "extractVersionTemplate": "-python(?<version>\\d+\\.\\d+)-",
       "managerFilePatterns": [
         "/^Dockerfile$/",
         "/^\\.python-version$/"
@@ -68,8 +64,8 @@
       "semanticCommitScope": "airflow"
     },
     {
-      "matchDatasources": ["docker"],
-      "matchDepNames": ["python"],
+      "matchDatasources": ["python-version"],
+      "matchPackageNames": ["python"],
       "groupName": "Python",
       "groupSlug": "python",
       "semanticCommitType": "minor",
