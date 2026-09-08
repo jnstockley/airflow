@@ -9,6 +9,7 @@
   "assignees": [
     "jnstockley"
   ],
+  "prConcurrentLimit": 0,
   "pip_requirements": {
     "managerFilePatterns": [
       "/(^|/)requirements(_.*)?.txt$/"
