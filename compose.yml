@@ -22,6 +22,7 @@ x-airflow-common: &airflow-common
       condition: service_healthy
     postgres:
       condition: service_healthy
+  user: "50000:0"
 
 name: airflow
 services:
