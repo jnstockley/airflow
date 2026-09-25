@@ -22,7 +22,7 @@ import urllib.request
 HOST = "localhost"
 PORT = os.environ.get("AIRFLOW__API__PORT", "8080")
 URL = f"http://{HOST}:{PORT}/api/v2/monitor/health"
-TIMEOUT_SECONDS = 30
+TIMEOUT_SECONDS = 45
 
 
 def main() -> int:
