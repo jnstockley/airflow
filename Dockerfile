@@ -14,6 +14,8 @@ COPY requirements.txt .
 
 USER airflow
 
+ENV PATH="/home/airflow/.local/bin:${PATH}"
+
 RUN python3 -m pip install --no-cache-dir --break-system-packages --upgrade pip && \
     python3 -m pip install --no-cache-dir --break-system-packages --user -r requirements.txt
 
