@@ -1,3 +1,4 @@
+import ipaddress
 import logging
 from datetime import timedelta, datetime
 
@@ -46,6 +47,13 @@ def __get_all_ips():
     ips = response.json()
 
     return ips
+
+
+def to_cidr(addr, prefix_len=64):
+    try:
+        return str(ipaddress.IPv6Network(f"{addr}/{prefix_len}", strict=False))
+    except ValueError:
+        return None
 
 
 @dag(
@@ -133,7 +141,15 @@ def cloudflare_apps():
         def main():
             ips = [item["ipv4_address"] for item in ips_dict if "ipv4_address" in item]
 
-            ips.extend([item["ipv6_address"] for item in ips_dict if "ipv6_address" in item and item["ipv6_address"] is not None])
+            ips.extend(
+                [
+                    cidr
+                    for item in ips_dict
+                    if "ipv6_address" in item
+                    and item["ipv6_address"] is not None
+                    and (cidr := to_cidr(item["ipv6_address"])) is not None
+                ]
+            )
 
             policy_id = get_app_policy_id(
                 account_id, "Bypass Internal IPs", cloudflare_api_key
