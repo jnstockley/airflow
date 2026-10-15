@@ -7,7 +7,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__API__BASE_URL: http://localhost:8080/
     AIRFLOW_VAR_ENV: dev
     REDIS_URI: redis://redis:6379/0
-    AUTHENTIK_APP_NANE: airflow-dev
+    AUTHENTIK_APP_NAME: ${AUTHENTIK_APP_NAME:-airflow-dev}
     AIRFLOW__LOG_RETENTION_DAYS: 7
     AIRFLOW__FAB__COOKIE_SECURE: False # Only needed on dev, non HTTPS
     AIRFLOW__FAB__COOKIE_SAMESITE: Lax # Only needed on dev, non HTTPS
