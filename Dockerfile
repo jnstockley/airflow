@@ -16,7 +16,7 @@ USER airflow
 
 ENV PATH="/home/airflow/.local/bin:${PATH}"
 
-RUN python3 -m pip install --no-cache-dir --break-system-packages --upgrade pip && \
+RUN python3 -m pip install --no-cache-dir --break-system-packages --upgrade pip "pip>=26.2.2" && \
     python3 -m pip install --no-cache-dir --break-system-packages --user -r requirements.txt
 
 FROM dhi.io/airflow:${AIRFLOW_VERSION}-python${PYTHON_VERSION}-compat
