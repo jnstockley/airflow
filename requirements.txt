@@ -6,8 +6,3 @@ redis==8.1.0
 asyncpg==0.32.0
 apache-airflow-providers-fab[oauth]==3.10.2
 apache-airflow-providers-apprise==2.4.1
-
-# TLS Cert mitigation https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576
-certifi>=2026.10.19
-pip>=26.2.2
-uv>=0.13.4
